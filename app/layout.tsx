@@ -4,6 +4,7 @@ import { GeistPixelSquare } from "geist/font/pixel";
 
 import { DeferredAnalytics } from "@/components/deferred-analytics";
 import LiquidChrome from "@/components/LiquidChrome";
+import { Navbar } from "@/components/navbar";
 import { Providers } from "@/components/providers";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import "./globals.css";
@@ -74,6 +75,7 @@ export default function RootLayout({
         </div>
         <SmoothScroll />
         <div className="relative z-10 bg-black/5">
+          <Navbar />
           <Providers>{children}</Providers>
         </div>
         <DeferredAnalytics />
