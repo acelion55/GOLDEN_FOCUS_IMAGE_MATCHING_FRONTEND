@@ -13,6 +13,7 @@ export interface IUser extends Document {
   uniqueLink: string;
   businessName?: string;
   phone?: string;
+  googleId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -57,6 +58,10 @@ const UserSchema = new Schema<IUser>(
     phone: {
       type: String,
       trim: true,
+    },
+    googleId: {
+      type: String,
+      sparse: true,
     },
   },
   {

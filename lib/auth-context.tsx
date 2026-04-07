@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { signIn as nextAuthSignIn } from "next-auth/react";
 
 export type UserRole = "admin" | "photographer";
 export type UserStatus = "pending" | "approved" | "suspended";
@@ -26,6 +27,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (identifier: string, password: string) => Promise<AuthResult>;
   signup: (data: SignupData) => Promise<AuthResult>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -143,8 +145,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/");
   };
 
+  const loginWithGoogle = async () => {
+    await nextAuthSignIn("google", { callbackUrl: "/auth/google-callback" });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, signup, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, signup, loginWithGoogle, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

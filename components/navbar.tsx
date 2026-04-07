@@ -88,15 +88,15 @@ export function Navbar() {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/#photographer-auth" className="text-sm text-white/60 hover:text-white transition-colors">
-            Login
-          </Link>
-          <Link
-            href="/#signup"
-            className="px-4 py-2 bg-yellow-400 text-black font-pixel text-xs hover:bg-yellow-300 transition-colors"
+          <a
+            href="/#login"
+            onClick={(e) => { e.preventDefault(); window.history.replaceState(null, "", "/#login"); window.dispatchEvent(new HashChangeEvent("hashchange")); }}
+                       className="px-4 py-2 bg-yellow-400 text-black font-pixel text-xs hover:bg-yellow-300 transition-colors"
+
           >
-            Get Started
-          </Link>
+            Login
+          </a>
+         
         </div>
 
         {/* Mobile Hamburger */}
@@ -131,10 +131,13 @@ export function Navbar() {
             </Link>
           ))}
           <div className="flex gap-3 pt-2 border-t border-white/10">
-            <Link href="/#photographer-auth" onClick={() => setMenuOpen(false)}
-              className="flex-1 text-center py-2 text-sm text-white/60 border border-white/20 hover:border-white/40 transition-colors">
+            <a
+              href="/#login"
+              onClick={(e) => { e.preventDefault(); setMenuOpen(false); window.history.replaceState(null, "", "/#login"); window.dispatchEvent(new HashChangeEvent("hashchange")); }}
+              className="flex-1 text-center py-2 text-sm text-white/60 border border-white/20 hover:border-white/40 transition-colors"
+            >
               Login
-            </Link>
+            </a>
             <Link href="/#signup" onClick={() => setMenuOpen(false)}
               className="flex-1 text-center py-2 bg-yellow-400 text-black font-pixel text-xs hover:bg-yellow-300 transition-colors">
               Get Started

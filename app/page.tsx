@@ -5,6 +5,7 @@ import { useState, useEffect, useLayoutEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import gsap from "gsap";
 import { useAuth } from "@/lib/auth-context";
+import Rotate from "../components/Rotate";
 import { Button } from "@/components/ui/button";
 import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 
@@ -67,11 +68,14 @@ function PinInput({ value, onChange, disabled }: { value: string; onChange: (v: 
   );
 }
 
-function HomeAuthForm() {
+// mode: "idle" = show CTA button, "signup" = show signup form, "login" = show login form
+type PanelMode = "idle" | "signup" | "login";
+
+function HeroPanel() {
   const searchParams = useSearchParams();
   const isAdmin = searchParams.get("admin") === "1" || searchParams.get("role") === "admin";
 
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<PanelMode>("idle");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -82,76 +86,51 @@ function HomeAuthForm() {
   const { login, signup } = useAuth();
   const router = useRouter();
 
-  const signupWrapRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const footerRef = useRef<HTMLDivElement>(null);
-  const prevModeRef = useRef<"login" | "signup" | null>(null);
-  const skipIntroAnim = useRef(true);
+  const formRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
 
-  useLayoutEffect(() => {
-    if (isAdmin) return;
-    const wrap = signupWrapRef.current;
-    if (!wrap) return;
-    const inner = wrap.querySelector("[data-signup-inner]") as HTMLElement | null;
-    if (!inner) return;
-    const fields = inner.children;
-    const isInitial = prevModeRef.current === null;
-    if (isInitial) {
-      if (mode === "login") {
-        gsap.set(wrap, { height: 0, overflow: "hidden" });
-        gsap.set(fields, { opacity: 0, y: -10 });
-      } else {
-        gsap.set(wrap, { height: "auto", overflow: "visible" });
-        gsap.set(fields, { opacity: 1, y: 0 });
-      }
-      prevModeRef.current = mode;
-      return;
-    }
-    if (prevModeRef.current === mode) return;
-    prevModeRef.current = mode;
-    gsap.killTweensOf([wrap, ...Array.from(fields)]);
-    if (mode === "signup") {
-      gsap.set(wrap, { height: "auto", overflow: "visible" });
-      gsap.set(fields, { clearProps: "opacity,transform" });
-      void wrap.offsetHeight;
-      const targetH = Math.max(inner.scrollHeight, inner.offsetHeight, 120);
-      gsap.set(fields, { opacity: 0, y: -14 });
-      gsap.set(wrap, { height: 0, overflow: "hidden" });
-      gsap.to(wrap, { height: targetH, duration: 0.48, ease: "power2.out", onComplete: () => { gsap.set(wrap, { height: "auto", overflow: "visible" }); } });
-      gsap.fromTo(fields, { opacity: 0, y: -18 }, { opacity: 1, y: 0, duration: 0.42, stagger: 0.065, ease: "power2.out", delay: 0.06 });
-    } else {
-      gsap.set(wrap, { overflow: "hidden" });
-      gsap.set(wrap, { height: wrap.offsetHeight });
-      gsap.to(fields, { opacity: 0, y: -14, duration: 0.24, stagger: { each: 0.035, from: "start" }, ease: "power2.in" });
-      gsap.to(wrap, { height: 0, duration: 0.4, ease: "power2.inOut", delay: 0.05 });
-    }
-  }, [mode, isAdmin]);
-
-  useLayoutEffect(() => {
-    if (isAdmin) return;
-    if (skipIntroAnim.current) { skipIntroAnim.current = false; return; }
-    if (titleRef.current) gsap.fromTo(titleRef.current, { opacity: 0.35, y: -6 }, { opacity: 1, y: 0, duration: 0.28, ease: "power2.out" });
-    if (footerRef.current) gsap.fromTo(footerRef.current, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out", delay: 0.05 });
-  }, [mode, isAdmin]);
-
+  // Read hash/searchParams to set initial mode
   useEffect(() => {
     if (isAdmin) { setMode("login"); return; }
-    if (searchParams.get("mode") === "signup") { setMode("signup"); return; }
-    const h = typeof window !== "undefined" ? window.location.hash.replace(/^#/, "") : "";
-    if (h === "signup") setMode("signup");
-    else setMode("login");
+    const hash = window.location.hash.replace(/^#/, "");
+    if (searchParams.get("mode") === "signup" || hash === "signup") { setMode("signup"); return; }
+    if (hash === "login" || hash === "photographer-auth") { setMode("login"); return; }
+    setMode("idle");
   }, [isAdmin, searchParams]);
 
   useEffect(() => {
     if (isAdmin) return;
-    const applyHash = () => {
+    const onHash = () => {
       const h = window.location.hash.replace(/^#/, "");
       if (h === "signup") setMode("signup");
-      else setMode("login");
+      else if (h === "login" || h === "photographer-auth") setMode("login");
+      else setMode("idle");
     };
-    window.addEventListener("hashchange", applyHash);
-    return () => window.removeEventListener("hashchange", applyHash);
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
   }, [isAdmin]);
+
+  // Animate form in/out
+  useLayoutEffect(() => {
+    const form = formRef.current;
+    const cta = ctaRef.current;
+    if (!form || !cta) return;
+
+    if (mode === "idle") {
+      gsap.killTweensOf([form, cta]);
+      gsap.set(form, { display: "none", opacity: 0 });
+      gsap.set(cta, { display: "flex", opacity: 1, y: 0 });
+    } else {
+      gsap.killTweensOf([form, cta]);
+      gsap.set(cta, { display: "none" });
+      gsap.set(form, { display: "flex" });
+      gsap.fromTo(form, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" });
+    }
+  }, [mode]);
+
+  function resetForm() {
+    setPhone(""); setPassword(""); setName(""); setBusinessName(""); setEmail(""); setError("");
+  }
 
   function redirectAfterAuth(role: string) {
     if (role === "admin") router.push("/admin");
@@ -159,6 +138,19 @@ function HomeAuthForm() {
   }
 
   async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    if (!phone.trim()) { setError("Please enter your phone number"); return; }
+    if (password.length !== 4) { setError("Please enter your 4-digit PIN"); return; }
+    setIsLoading(true);
+    const result = await login(phone.trim(), password.padEnd(8, "0"));
+    if (result.success) redirectAfterAuth(result.user.role);
+    else if (result.error?.includes("pending")) setError("Your account is under approval. Please contact 9983745802");
+    else setError(result.error || "Login failed");
+    setIsLoading(false);
+  }
+
+  async function handleAdminLogin(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if (!email.trim()) { setError("Please enter your email"); return; }
@@ -170,7 +162,8 @@ function HomeAuthForm() {
     setIsLoading(false);
   }
 
-  async function runSignup() {
+  async function handleSignup(e: React.FormEvent) {
+    e.preventDefault();
     setError("");
     if (!name.trim()) { setError("Please enter your full name"); return; }
     if (!email.trim()) { setError("Please enter your email"); return; }
@@ -183,105 +176,142 @@ function HomeAuthForm() {
     setIsLoading(false);
   }
 
-  async function handlePhotographerSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    if (mode === "login") {
-      if (!phone.trim()) { setError("Please enter your phone number"); return; }
-      if (password.length !== 4) { setError("Please enter your 4-digit PIN"); return; }
-      setIsLoading(true);
-      const result = await login(phone.trim(), password.padEnd(8, "0"));
-      if (result.success) redirectAfterAuth(result.user.role);
-      else if (result.error?.includes("pending")) setError("Your account is under approval. Please contact 9983745802");
-      else setError(result.error || "Login failed");
-      setIsLoading(false);
-    } else {
-      await runSignup();
-    }
+  function switchMode(next: PanelMode) {
+    resetForm();
+    setMode(next);
+    const hash = next === "signup" ? "signup" : next === "login" ? "login" : "";
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${hash ? "#" + hash : ""}`);
   }
 
   return (
-    <div className="w-full max-w-md p-6 sm:p-10 self-start bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl flex flex-col transition-all duration-500">
-      <h2 ref={titleRef} className="font-pixel text-lg text-white mb-6">
-        {isAdmin ? "Admin Login" : mode === "login" ? "Welcome Back" : "Create Account"}
-      </h2>
+    <div className="w-full xl:w-[min(30%,32rem)] xl:min-w-[22rem] shrink-0 flex items-center justify-center pt-4 pr-4">
 
-      {error && (
-        <div className="mb-4 px-4 py-3 text-sm flex items-center gap-3 bg-red-500/10 text-red-300 border border-red-500/40 rounded-xl">
-          <span>⚠</span>
-          <span>{error}</span>
-        </div>
-      )}
+      {/* CTA — shown when idle */}
+      <div ref={ctaRef} className="flex flex-col items-start gap-4 w-full max-w-md">
+        <p className="text-white/50 text-sm">Ready to grow your photography business?</p>
+        <button
+          onClick={() => switchMode("signup")}
+          className="px-8 py-4 bg-yellow-400 text-black font-pixel text-sm hover:bg-yellow-300 active:scale-95 transition-all"
+        >
+          Join as Photographer →
+        </button>
+      </div>
 
-      {isAdmin ? (
-        <form onSubmit={handleLogin} className="flex flex-col gap-4" noValidate>
-          <FloatingLabelInput id="admin-email" label="Email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
-          <input type="password" placeholder="4-Digit PIN *" value={password} maxLength={4}
-            onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 4))} required disabled={isLoading}
-            className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/30 focus:border-yellow-400 focus:outline-none" />
-          <Button type="submit" disabled={isLoading} className="w-full mt-1 font-pixel text-xs uppercase">
-            {isLoading ? "Please wait…" : "Login"}
-          </Button>
-        </form>
-      ) : (
-        <form onSubmit={handlePhotographerSubmit} className="flex flex-col gap-4" noValidate>
-          <div ref={signupWrapRef} className="min-h-0">
-            <div data-signup-inner className="flex flex-col gap-4">
-              <FloatingLabelInput id="home-name" label="Full name" type="text" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading || mode === "login"} tabIndex={mode === "login" ? -1 : 0} />
-              <FloatingLabelInput id="home-business" label="Business name (optional)" type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)} disabled={isLoading || mode === "login"} tabIndex={mode === "login" ? -1 : 0} />
-              <FloatingLabelInput id="home-email" label="Email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading || mode === "login"} tabIndex={mode === "login" ? -1 : 0} />
-            </div>
-          </div>
-          <FloatingLabelInput id="home-phone" label="Phone number" type="tel" inputMode="numeric" maxLength={10} autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} disabled={isLoading} />
-          <PinInput value={password} onChange={setPassword} disabled={isLoading} />
-          <Button type="submit" disabled={isLoading} className="w-full mt-1 font-pixel text-xs uppercase">
-            {isLoading ? "Please wait…" : mode === "login" ? "Login" : "Create Account"}
-          </Button>
-        </form>
-      )}
+      {/* Form — shown when signup or login */}
+      <div ref={formRef} style={{ display: "none" }} className="flex-col w-full max-w-md gap-1">
 
-      {!isAdmin && (
-        <div ref={footerRef} className="mt-6 text-center text-sm text-white/50">
-          {mode === "login" ? (
-            <>Don&apos;t have an account?{" "}
-              <a href="/#signup" className="text-yellow-400 hover:underline font-medium" onClick={(e) => { e.preventDefault(); setError(""); setMode("signup"); window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#signup`); }}>Sign up</a>
-            </>
-          ) : (
-            <>Already have an account?{" "}
-              <a href="/#photographer-auth" className="text-yellow-400 hover:underline font-medium" onClick={(e) => { e.preventDefault(); setError(""); setMode("login"); window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#photographer-auth`); }}>Log in</a>
-            </>
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="font-pixel text-lg text-white">
+            {isAdmin ? "Admin Login" : mode === "login" ? "Welcome Back" : "Create Account"}
+          </h2>
+          {!isAdmin && (
+            <button
+              onClick={() => switchMode("idle")}
+              className="text-white/30 hover:text-white/70 text-xl transition-colors leading-none"
+              aria-label="Close"
+            >
+              ✕
+            </button>
           )}
         </div>
-      )}
+
+        {error && (
+          <div className="mb-4 px-4 py-3 text-sm flex items-center gap-3 bg-red-500/10 text-red-300 border border-red-500/40 rounded-xl">
+            <span>⚠</span><span>{error}</span>
+          </div>
+        )}
+
+        {/* Admin login form */}
+        {isAdmin && (
+          <form onSubmit={handleAdminLogin} className="flex flex-col gap-4" noValidate>
+            <FloatingLabelInput id="admin-email" label="Email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
+            <input type="password" placeholder="4-Digit PIN *" value={password} maxLength={4}
+              onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 4))} required disabled={isLoading}
+              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/30 focus:border-yellow-400 focus:outline-none" />
+            <Button type="submit" disabled={isLoading} className="w-full mt-1 font-pixel text-xs uppercase">
+              {isLoading ? "Please wait…" : "Login"}
+            </Button>
+          </form>
+        )}
+
+        {/* Signup form */}
+        {!isAdmin && mode === "signup" && (
+          <form onSubmit={handleSignup} className="flex flex-col gap-4" noValidate>
+            <FloatingLabelInput id="s-name" label="Full name" type="text" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading} />
+            <FloatingLabelInput id="s-business" label="Business name (optional)" type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)} disabled={isLoading} />
+            <FloatingLabelInput id="s-email" label="Email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
+            <FloatingLabelInput id="s-phone" label="Phone number" type="tel" inputMode="numeric" maxLength={10} autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} disabled={isLoading} />
+            <PinInput value={password} onChange={setPassword} disabled={isLoading} />
+            <Button type="submit" disabled={isLoading} className="w-full mt-1 font-pixel text-xs uppercase">
+              {isLoading ? "Please wait…" : "Create Account"}
+            </Button>
+            <p className="text-center text-sm text-white/50">
+              Already have an account?{" "}
+              <button type="button" onClick={() => switchMode("login")} className="text-yellow-400 hover:underline font-medium">Log in</button>
+            </p>
+          </form>
+        )}
+
+        {/* Login form */}
+        {!isAdmin && mode === "login" && (
+          <form onSubmit={handleLogin} className="flex flex-col gap-4" noValidate>
+            <FloatingLabelInput id="l-phone" label="Phone number" type="tel" inputMode="numeric" maxLength={10} autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} disabled={isLoading} />
+            <PinInput value={password} onChange={setPassword} disabled={isLoading} />
+            <Button type="submit" disabled={isLoading} className="w-full mt-1 font-pixel text-xs uppercase">
+              {isLoading ? "Please wait…" : "Login"}
+            </Button>
+            <p className="text-center text-sm text-white/50">
+              Don&apos;t have an account?{" "}
+              <button type="button" onClick={() => switchMode("signup")} className="text-yellow-400 hover:underline font-medium">Sign up</button>
+            </p>
+          </form>
+        )}
+      </div>
     </div>
   );
 }
 
+function useHeroScroll() {
+  const heroRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+    const onScroll = () => {
+      const offset = Math.min(window.scrollY, window.innerHeight * 0.05);
+      hero.style.transform = `translateY(-${offset}px)`;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return heroRef;
+}
+
 export default function LandingPage() {
+  const heroRef = useHeroScroll();
   return (
     <div className="w-full bg-black/80 text-foreground">
-      
+
       {/* STAGE 1: FIXED HERO SECTION */}
-      <section id="photographer-auth" className="fixed z-0 top-0 left-0 w-full h-[105vh] flex flex-col xl:flex-row xl:items-start border-b bg-black/90 border-border pt-[10vh]">
-        <div id="hero" className="flex-1 flex flex-col justify-center xl:p-3">
-          <h1 className="lg:text-[13rem]  sm:text-[11rem] text-[8rem] font-bold leading-[0.85]">GOLDEN</h1>
+      <section ref={heroRef} id="photographer-auth" className="fixed z-0 top-0 left-0 w-full h-[105vh] flex flex-col xl:flex-row xl:items-start border-b bg-black/90 border-border pt-[9vh]">
+        <div id="hero" className="flex-1 flex flex-col justify-center xl:p-0">
+          <h1 className="lg:text-[13rem] sm:text-[11rem] text-[8rem] font-bold leading-[0.85]">GOLDEN</h1>
           <h1 className="lg:text-[12rem] sm:text-[10rem] text-[7.5rem] font-bold leading-[0.85]">FOCUS</h1>
           <div className="relative flex">
-          <h1 className="lg:text-[10rem] w-fit sm:text-[10rem] text-[7rem] font-bold leading-[0.85]">AI</h1>
-          <p className="   text-white/60 text-[1.1rem] max-w-[15vw]">AI-powered face recognition for photographers. Upload photos, clients find themselves instantly.</p>
+            <h1 className="lg:text-[10rem] w-fit sm:text-[10rem] text-[7rem] font-bold leading-[0.85]">AI</h1>
+            <p className="text-white/60 text-[1.1rem] max-w-[15vw]">AI-powered face recognition for photographers. Upload photos, clients find themselves instantly.</p>
+          </div>
         </div>
-        </div>
-        <div id="login-signup-form" className="w-full xl:w-[min(30%,32rem)] xl:min-w-[22rem] shrink-0 flex items-center justify-center pt-4 pr-4">
-          <Suspense fallback={<div className="w-full max-w-md h-96 animate-pulse rounded-2xl bg-white/10" />}>
-            <HomeAuthForm />
-          </Suspense>
-        </div>
+        <Rotate  />
+        <Suspense fallback={<div className="w-full xl:w-[min(30%,32rem)] h-32 animate-pulse rounded-2xl bg-white/10" />}>
+          <HeroPanel />
+        </Suspense>
       </section>
 
-      {/* CONTENT CONTAINER - Offset by hero height */}
+      {/* CONTENT CONTAINER */}
       <div className="mt-[105vh] z-11 relative">
         {/* STAGE 2: Features Section */}
-        <section className="w-full h-[120vh] sticky  -top-20 flex flex-col items-center justify-center px-[4vw] py-[4vh] border-b border-border bg-red-200">
+        <section className="w-full h-[120vh] sticky -top-20 flex flex-col items-center justify-center px-[4vw] py-[4vh] border-b border-border bg-red-200">
           <p className="text-xs font-pixel text-yellow-400 mb-[2vh] tracking-widest uppercase">AI-Powered Photography Platform</p>
           <h2 className="font-pixel text-[3vw] sm:text-[5vw] text-white mb-[3vh] leading-tight max-w-[90vw] text-center">
             Let Your Clients Find <span className="text-yellow-400">Themselves</span> in Every Shot
@@ -291,7 +321,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-[2vw]">
             <a href="/#signup" className="px-[2vw] py-[1.5vh] bg-yellow-400 text-black font-pixel text-[1.2vw] hover:bg-yellow-300 transition-colors text-center whitespace-nowrap">Join as Photographer</a>
-            <a href="/#photographer-auth" className="px-[2vw] py-[1.5vh] border border-yellow-400/40 text-white text-[1.2vw] hover:border-yellow-400 hover:text-yellow-400 transition-colors text-center whitespace-nowrap">Login to Dashboard</a>
+            <a href="/#login" className="px-[2vw] py-[1.5vh] border border-yellow-400/40 text-white text-[1.2vw] hover:border-yellow-400 hover:text-yellow-400 transition-colors text-center whitespace-nowrap">Login to Dashboard</a>
           </div>
         </section>
 
@@ -310,7 +340,7 @@ export default function LandingPage() {
         </section>
 
         {/* STAGE 4: Why GoldenFocus AI */}
-        <section className="w-full h-[140vh]  mt-15vh sticky -top-40 flex flex-col items-center justify-center px-[4vw] py-[4vh] border-b border-border bg-black/80">
+        <section className="w-full h-[140vh] mt-15vh sticky -top-40 flex flex-col items-center justify-center px-[4vw] py-[4vh] border-b border-border bg-black/80">
           <h2 className="font-pixel text-[2.5vw] text-yellow-400 mb-[6vh] text-center">Why GoldenFocus AI?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-[2vw] w-full max-w-[90vw]">
             {benefits.map((item) => (
@@ -325,11 +355,9 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* STAGE 5: How It Works + Footer (150vh) */}
-        <section className="w-full h-[180vh]  mt-15vh flex flex-col sticky top-0 px-[4vw] py-[4vh] border-b border-border bg-green-900">
+        {/* STAGE 5: How It Works + Footer */}
+        <section className="w-full h-[180vh] mt-15vh flex flex-col sticky top-0 px-[4vw] py-[4vh] border-b border-border bg-green-900">
           <h2 className="font-pixel text-[2.5vw] text-yellow-400 mb-[6vh] text-center">How It Works</h2>
-          
-          {/* Steps Container */}
           <div className="flex-1 flex flex-col sm:flex-row gap-[1vw] mb-[8vh]">
             {steps.map((item, i) => (
               <div key={item.step} className="flex-1 flex flex-col items-center justify-center text-center p-[2vw] border border-white/10 bg-white/5 backdrop-blur rounded-xl relative min-h-[20vh]">
@@ -341,21 +369,17 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-
-          {/* CTA Section */}
           <div className="flex flex-col items-center text-center py-[4vh] mb-[4vh]">
             <h2 className="font-pixel text-[2vw] text-white mb-[2vh]">Ready to Transform Your Photography Business?</h2>
             <p className="text-white/60 mb-[3vh] max-w-[70vw] text-[1.2vw]">Join photographers already using GoldenFocus AI to deliver a faster, smarter client experience.</p>
             <a href="/#signup" className="px-[2.5vw] py-[1.5vh] bg-yellow-400 text-black font-pixel text-[1.2vw] hover:bg-yellow-300 transition-colors">Get Started Free</a>
           </div>
-
-          {/* Footer */}
           <footer className="px-[2vw] py-[2vh] flex flex-col sm:flex-row items-center justify-between gap-[1.5vw] text-white/40 text-[0.9vw] border-t border-white/10 mt-auto">
             <span className="font-pixel text-yellow-400">GoldenFocus AI</span>
             <div className="flex flex-wrap gap-[1.5vw] sm:gap-[2vw] justify-center">
-              <a href="/#photographer-auth" className="hover:text-yellow-400 transition-colors">Photographer Login</a>
+              <a href="/#login" className="hover:text-yellow-400 transition-colors">Photographer Login</a>
               <a href="/#signup" className="hover:text-yellow-400 transition-colors">Sign Up</a>
-              <Link href="/?admin=1#photographer-auth" className="hover:text-yellow-400 transition-colors">Admin Login</Link>
+              <Link href="/?admin=1#login" className="hover:text-yellow-400 transition-colors">Admin Login</Link>
             </div>
             <span>© 2025 GoldenFocus AI</span>
           </footer>
