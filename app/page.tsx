@@ -184,11 +184,15 @@ function HeroPanel() {
   }
 
   return (
- <div className={`
-    w-full xl:w-[min(30%,32rem)] xl:min-w-[22rem] shrink-0 xl:flex xl:items-center xl:justify-center xl:pr-4 xl:pt-4 xl:pb-0 absolute xl:relative left-0 px-4 xl:px-0 transition-all duration-500
+<div className={`
+    w-full xl:w-[min(30%,32rem)] xl:min-w-[22rem] shrink-0 
+    xl:flex xl:items-center xl:justify-center xl:pr-4 xl:pt-4 xl:pb-0 
+    absolute xl:relative left-0 px-4 xl:px-0 transition-all duration-500
+    
     ${mode === 'idle' ? 'top-[65%]' : 'top-[45%]'}
+    xl:top-[0%] 
   `}> 
-   
+    
     <div 
       ref={ctaRef} 
       className="flex flex-col items-start gap-3 w-full max-w-md xl:translate-y-0"
