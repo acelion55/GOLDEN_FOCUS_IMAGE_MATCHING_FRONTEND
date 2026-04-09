@@ -184,21 +184,29 @@ function HeroPanel() {
   }
 
   return (
-    <div className="w-full xl:w-[min(30%,32rem)] xl:min-w-[22rem] shrink-0 flex items-center justify-center pt-4 pr-4">
+ <div className={`
+    w-full xl:w-[min(30%,32rem)] xl:min-w-[22rem] shrink-0 xl:flex xl:items-center xl:justify-center xl:pr-4 xl:pt-4 xl:pb-0 absolute xl:relative left-0 px-4 xl:px-0 transition-all duration-500
+    ${mode === 'idle' ? 'top-[65%]' : 'top-[45%]'}
+  `}> 
+   
+    <div 
+      ref={ctaRef} 
+      className="flex flex-col items-start gap-3 w-full max-w-md xl:translate-y-0"
+    >
+      <p className="text-white/50 text-sm">Ready to grow your photography business?</p>
+      <button
+        onClick={() => switchMode("signup")}
+        className="px-8 py-4 bg-yellow-400 text-black font-pixel text-sm hover:bg-yellow-300 active:scale-95 transition-all"
+      >
+        Join as Photographer →
+      </button>
+    </div>
 
-      {/* CTA — shown when idle */}
-      <div ref={ctaRef} className="flex flex-col items-start gap-4 w-full max-w-md">
-        <p className="text-white/50 text-sm">Ready to grow your photography business?</p>
-        <button
-          onClick={() => switchMode("signup")}
-          className="px-8 py-4 bg-yellow-400 text-black font-pixel text-sm hover:bg-yellow-300 active:scale-95 transition-all"
-        >
-          Join as Photographer →
-        </button>
-      </div>
-
-      {/* Form — shown when signup or login */}
-      <div ref={formRef} style={{ display: "none" }} className="flex-col w-full max-w-md gap-1">
+    <div 
+      ref={formRef} 
+      style={{ display: "none" }} 
+      className="flex-col w-full max-w-md gap-1"
+    >
 
         {/* Header row */}
         <div className="flex items-center justify-between mb-5">
@@ -293,25 +301,33 @@ export default function LandingPage() {
     <div className="w-full bg-black/80 text-foreground">
 
       {/* STAGE 1: FIXED HERO SECTION */}
-      <section ref={heroRef} id="photographer-auth" className="fixed z-0 top-0 left-0 w-full h-[105vh] flex flex-col xl:flex-row xl:items-start border-b bg-black/90 border-border pt-[9vh]">
-        <div id="hero" className="flex-1 flex flex-col justify-center xl:p-0">
-          <h1 className="lg:text-[13rem] sm:text-[11rem] text-[8rem] font-bold leading-[0.85]">GOLDEN</h1>
-          <h1 className="lg:text-[12rem] sm:text-[10rem] text-[7.5rem] font-bold leading-[0.85]">FOCUS</h1>
-          <div className="relative flex">
-            <h1 className="lg:text-[10rem] w-fit sm:text-[10rem] text-[7rem] font-bold leading-[0.85]">AI</h1>
-            <p className="text-white/60 text-[1.1rem] max-w-[15vw]">AI-powered face recognition for photographers. Upload photos, clients find themselves instantly.</p>
-          </div>
+      <section ref={heroRef} id="photographer-auth" className="fixed z-0 top-0 left-0 w-full h-[105vh] flex flex-col xl:flex-row xl:items-start border-b bg-black/40 border-border pt-[10vh] overflow-hidden xl:overflow-visible">
+
+        {/* Hero Text */}
+        <div id="hero" className="xl:flex-1 flex flex-col justify-start xl:justify-center xl:p-0 px-4 xl:px-0">
+          <h1 className="lg:text-[13rem] sm:text-[11rem] text-[19vw] font-bold leading-[0.85]">GOLDEN</h1>
+          <h1 className="lg:text-[12rem] sm:text-[10rem] text-[18vw] font-bold leading-[0.85]">FOCUS</h1>
+          <div className="relative flex items-end gap-3">
+            <h1 className="lg:text-[10rem] w-fit sm:text-[10rem] text-[15vw] font-bold leading-[0.85]">AI</h1>
+            <p className="text-white/60 text-sm sm:text-base md:text-lg  max-w-[50vw] sm:max-w-[40vw]  lg:leading-[1.45] lg:max-w-[18vw] lg:mb-1 sm:-mr-2 lg:-ml-4">
+              AI-powered face recognition for photographers. Upload photos, clients find themselves instantly.
+            </p>         
+             </div>
         </div>
-        <Rotate  />
-        <Suspense fallback={<div className="w-full xl:w-[min(30%,32rem)] h-32 animate-pulse rounded-2xl bg-white/10" />}>
+
+        {/* Rotate — middle column on desktop */}
+        <Rotate />
+
+        {/* Panel */}
+        <Suspense fallback={<div className="w-full xl:w-[min(30%,32rem)] h-20 animate-pulse bg-white/10" />}>
           <HeroPanel />
         </Suspense>
       </section>
 
       {/* CONTENT CONTAINER */}
-      <div className="mt-[105vh] z-11 relative">
+      <div className="top-[105vh] z-11 relative">
         {/* STAGE 2: Features Section */}
-        <section className="w-full h-[120vh] sticky -top-20 flex flex-col items-center justify-center px-[4vw] py-[4vh] border-b border-border bg-red-200">
+        <section className="w-full h-[120vh] sticky -top-20 flex flex-col items-center justify-center px-[4vw] py-[4vh] border-b border-border bg-[#c4939d]">
           <p className="text-xs font-pixel text-yellow-400 mb-[2vh] tracking-widest uppercase">AI-Powered Photography Platform</p>
           <h2 className="font-pixel text-[3vw] sm:text-[5vw] text-white mb-[3vh] leading-tight max-w-[90vw] text-center">
             Let Your Clients Find <span className="text-yellow-400">Themselves</span> in Every Shot
@@ -319,14 +335,11 @@ export default function LandingPage() {
           <p className="text-white/60 text-[2vw] max-w-[80vw] mb-[4vh] text-center">
             GoldenFocus AI uses face recognition to instantly match event photos to the right people.
           </p>
-          <div className="flex flex-col sm:flex-row gap-[2vw]">
-            <a href="/#signup" className="px-[2vw] py-[1.5vh] bg-yellow-400 text-black font-pixel text-[1.2vw] hover:bg-yellow-300 transition-colors text-center whitespace-nowrap">Join as Photographer</a>
-            <a href="/#login" className="px-[2vw] py-[1.5vh] border border-yellow-400/40 text-white text-[1.2vw] hover:border-yellow-400 hover:text-yellow-400 transition-colors text-center whitespace-nowrap">Login to Dashboard</a>
-          </div>
+
         </section>
 
         {/* STAGE 3: What We Do */}
-        <section className="w-full mt-15vh h-[120vh] sticky -top-20 flex flex-col items-center justify-center px-[4vw] py-[4vh] border-b border-border bg-black/80">
+        <section className="w-full mt-15vh h-[120vh] sticky -top-20 flex flex-col items-center justify-center px-[4vw] py-[4vh] border-b border-border bg-[#8497ab]">
           <h2 className="font-pixel text-[2.5vw] text-yellow-400 mb-[6vh] text-center">What We Do</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-[3vw] w-full max-w-[90vw]">
             {features.map((item) => (
@@ -340,7 +353,7 @@ export default function LandingPage() {
         </section>
 
         {/* STAGE 4: Why GoldenFocus AI */}
-        <section className="w-full h-[140vh] mt-15vh sticky -top-40 flex flex-col items-center justify-center px-[4vw] py-[4vh] border-b border-border bg-black/80">
+        <section className="w-full h-[140vh] mt-15vh sticky -top-40 flex flex-col items-center justify-center px-[4vw] py-[4vh] border-b border-border bg-[#8e9487]">
           <h2 className="font-pixel text-[2.5vw] text-yellow-400 mb-[6vh] text-center">Why GoldenFocus AI?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-[2vw] w-full max-w-[90vw]">
             {benefits.map((item) => (
@@ -356,7 +369,7 @@ export default function LandingPage() {
         </section>
 
         {/* STAGE 5: How It Works + Footer */}
-        <section className="w-full h-[180vh] mt-15vh flex flex-col sticky top-0 px-[4vw] py-[4vh] border-b border-border bg-green-900">
+        <section className="w-full h-[180vh] mt-15vh flex flex-col sticky top-0 border-b border-border bg-[#f5793b]">
           <h2 className="font-pixel text-[2.5vw] text-yellow-400 mb-[6vh] text-center">How It Works</h2>
           <div className="flex-1 flex flex-col sm:flex-row gap-[1vw] mb-[8vh]">
             {steps.map((item, i) => (
@@ -369,19 +382,8 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-          <div className="flex flex-col items-center text-center py-[4vh] mb-[4vh]">
-            <h2 className="font-pixel text-[2vw] text-white mb-[2vh]">Ready to Transform Your Photography Business?</h2>
-            <p className="text-white/60 mb-[3vh] max-w-[70vw] text-[1.2vw]">Join photographers already using GoldenFocus AI to deliver a faster, smarter client experience.</p>
-            <a href="/#signup" className="px-[2.5vw] py-[1.5vh] bg-yellow-400 text-black font-pixel text-[1.2vw] hover:bg-yellow-300 transition-colors">Get Started Free</a>
-          </div>
-          <footer className="px-[2vw] py-[2vh] flex flex-col sm:flex-row items-center justify-between gap-[1.5vw] text-white/40 text-[0.9vw] border-t border-white/10 mt-auto">
-            <span className="font-pixel text-yellow-400">GoldenFocus AI</span>
-            <div className="flex flex-wrap gap-[1.5vw] sm:gap-[2vw] justify-center">
-              <a href="/#login" className="hover:text-yellow-400 transition-colors">Photographer Login</a>
-              <a href="/#signup" className="hover:text-yellow-400 transition-colors">Sign Up</a>
-              <Link href="/?admin=1#login" className="hover:text-yellow-400 transition-colors">Admin Login</Link>
-            </div>
-            <span>© 2025 GoldenFocus AI</span>
+          <footer className="w-full items-center justify-between h-[70vh] bg-white  text-white/40 text-[0.9vw]  border-white/10 ">
+
           </footer>
         </section>
       </div>

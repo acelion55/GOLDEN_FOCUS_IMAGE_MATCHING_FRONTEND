@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -17,65 +17,99 @@ const CylindricalCarousel = () => {
     const sceneRef = useRef(null);
     const cylinderRef = useRef(null);
     const rotationProxy = useRef({ value: 0 });
-
-    // --- MOUSE TILT REFS ---
     const mouseX = useRef(0);
     const smoothMouseX = useRef(0);
+    
+    const [isMobile, setIsMobile] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
-    // --- CONFIGURATION PANEL ---
-    const settings = {
-        radius: 300,
-        perspective: "5000px",
-        yTilt: -10, // Calculation ke liye number rakha hai
-        xTilt: -10,
-        zTilt: -15,
-        duration: 25
+    // --- POSITION & SIZE CONFIGURATION ---
+    const responsiveSettings = {
+        desktop: {
+            radius: 320,          
+            perspective: "4000px",
+            xTilt: -6,
+            yTilt: -10,
+            zTilt: -10,
+            cardWidth: "250px",
+            cardHeight: "340px",
+            duration: 20,
+            // Position adjustments
+            top: "35%",
+            left: "-150%",
+            translateX: "50%",
+            translateY: "-50%"
+        },
+        mobile: {
+            radius: 200,         // Ab radius kam karne par cards paas aayenge
+            perspective: "1500px",
+            xTilt: -13,
+            yTilt: -10,
+            zTilt: -10,
+            cardWidth: "160px",
+            cardHeight: "240px",
+            duration: 20,
+            top: "10%",
+            left: "50%",
+            translateX: "-50%",
+            translateY: "-50%"
+        }
     };
 
-    // --- MOUSE MOVE LISTENER ---
+    const settings = isMobile ? responsiveSettings.mobile : responsiveSettings.desktop;
+
     useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        handleResize();
+        setMounted(true);
+
         const handleMouseMove = (e) => {
-            // Mouse screen ke center se kitna door hai (-0.5 to 0.5)
-            const x = (e.clientX / window.innerWidth) - 0.87;
-            mouseX.current = x * 40; // 60 is the intensity, ise kam/zyada kar sakte ho
+            const x = (e.clientX / window.innerWidth) - 0.5;
+            mouseX.current = x * 30;
         };
+        const handleTouchMove = (e) => {
+            const x = (e.touches[0].clientX / window.innerWidth) - 0.5;
+            mouseX.current = x * 30;
+        };
+
+        window.addEventListener('resize', handleResize);
         window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
+        window.addEventListener('touchmove', handleTouchMove);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('touchmove', handleTouchMove);
+        };
     }, []);
 
     useGSAP(() => {
+        if (!mounted) return;
+
         const cards = gsap.utils.toArray('.card-item');
         const count = cards.length;
         const angleStep = 360 / count;
 
+        // Radius update karne ke liye humein har render/resize pe ise dobara set karna hoga
+        gsap.killTweensOf(cards); // Purane animations clear karo
+        
         cards.forEach((card, i) => {
             gsap.set(card, {
                 rotateY: i * angleStep,
                 transformOrigin: `50% 50% -${settings.radius}px`,
                 z: settings.radius
             });
-
-            gsap.set(card.querySelector('.inner-card'), {
-                rotateY: 35,
-                rotateX: -15,
-                transformStyle: "preserve-3d",
-                transformOrigin: "50% 50%"
-            });
         });
 
-        gsap.to(rotationProxy.current, {
+        const anim = gsap.to(rotationProxy.current, {
             value: 360,
             duration: settings.duration,
             repeat: -1,
             ease: "none",
             onUpdate: () => {
-                // Smoothing the mouse movement (Lerp)
                 smoothMouseX.current += (mouseX.current - smoothMouseX.current) * 0.05;
-
                 const currentRotation = rotationProxy.current.value;
 
                 if (cylinderRef.current) {
-                    // Yahan mouse ka smooth tilt yTilt mein add ho raha hai
                     cylinderRef.current.style.transform =
                         `rotateX(${settings.xTilt}deg) ` +
                         `rotateY(${settings.yTilt + smoothMouseX.current}deg) ` +
@@ -85,61 +119,75 @@ const CylindricalCarousel = () => {
 
                 cards.forEach((card, i) => {
                     const cardRotation = (i * angleStep + currentRotation) % 360;
-                    const isBack = cardRotation > 105 && cardRotation < 255;
-
+                    const isBack = cardRotation > 100 && cardRotation < 260;
+                    
                     gsap.to(card, {
-                        filter: isBack ? "brightness(0.1) grayscale(1) blur(2px)" : "brightness(1) grayscale(0) blur(0px)",
+                        filter: isBack ? "brightness(0.1) blur(4px)" : "brightness(1) blur(0px)",
                         opacity: isBack ? 0.2 : 1,
-                        duration: 0.8,
+                        duration: 0.4,
                         overwrite: 'auto'
                     });
                 });
             }
         });
-    }, { scope: sceneRef });
+
+        return () => anim.kill(); // Cleanup
+    }, { scope: sceneRef, dependencies: [isMobile, mounted, settings.radius] });
+
+    if (!mounted) return null;
 
     return (
-        <div className="absolute inset-0 flex items-center justify-center bg-transparent overflow-hidden pointer-events-none ">
+        <div className="relative w-full h-[300px] xl:flex-1 xl:h-full bg-transparent overflow-visible pointer-events-none">
             <div
                 ref={sceneRef}
-                className="relative w-full h-full flex items-center justify-center pointer-events-auto"
+                className="relative w-full h-full pointer-events-auto"
                 style={{ perspective: settings.perspective }}
             >
                 <div
                     ref={cylinderRef}
-                    className="relative w-[20vw] h-[50vh]  mt-[42vh] ml-[40vw]"
+                    className="absolute flex items-center justify-center"
                     style={{
+                        width: settings.cardWidth,
+                        height: settings.cardHeight,
                         transformStyle: 'preserve-3d',
-                        transform: `rotateX(${settings.xTilt}deg) rotateY(${settings.yTilt}deg) rotateZ(${settings.zTilt}deg) rotateY(0deg)`
+                        // --- POSITION SETTINGS ---
+                        top: settings.top,
+                        left: settings.left,
+                        transform: `translate(${settings.translateX}, ${settings.translateY}) rotateX(${settings.xTilt}deg) rotateY(${settings.yTilt}deg) rotateZ(${settings.zTilt}deg)`
                     }}
                 >
                     {cardsData.map((card) => (
                         <div
                             key={card.id}
-                            className="card-item absolute inset-0 bg-[#0d0d0d] border border-white/10  p-7 flex flex-col justify-between "
-                            style={{ backfaceVisibility: 'visible', transformStyle: 'preserve-3d' }}
+                            className="card-item absolute inset-0 bg-[#0d0d0d] border border-white/10 p-5 md:p-7 flex flex-col justify-between rounded-2xl shadow-2xl"
+                            style={{ 
+                                backfaceVisibility: 'visible', 
+                                transformStyle: 'preserve-3d',
+                                width: settings.cardWidth,
+                                height: settings.cardHeight
+                            }}
                         >
-                                <div>
-                                    <div className="w-10 h-1 bg-white/20 rounded-full mb-6" />
-                                    <h2 className="text-2xl font-bold text-white tracking-tight leading-tight">
-                                        {card.name}
-                                    </h2>
-                                </div>
+                            <div>
+                                <div className="w-8 h-1 bg-white/20 rounded-full mb-4 md:mb-6" />
+                                <h2 className="text-lg md:text-2xl font-bold text-white tracking-tight leading-tight">
+                                    {card.name}
+                                </h2>
+                            </div>
 
-                                <div className="flex items-center justify-between mt-auto">
-                                    <div className="flex flex-col">
-                                        <span className="text-white/30 text-[10px] uppercase tracking-[3px] font-black">Artist</span>
-                                        <span className="text-white/70 text-sm font-medium">{card.title}</span>
-                                    </div>
-                                    <div className="relative">
-                                        <div className="absolute inset-0 bg-white/10 blur-xl rounded-full" />
-                                        <img
-                                            src={card.image}
-                                            alt={card.name}
-                                            className="relative w-14 h-14 rounded-2xl object-cover border border-white/10"
-                                        />
-                                    </div>
+                            <div className="flex items-center justify-between mt-auto">
+                                <div className="flex flex-col">
+                                    <span className="text-white/30 text-[8px] md:text-[10px] uppercase tracking-[2px] font-black">Member</span>
+                                    <span className="text-white/70 text-xs md:text-sm font-medium">{card.title}</span>
                                 </div>
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-white/10 blur-xl rounded-full" />
+                                    <img
+                                        src={card.image}
+                                        alt={card.name}
+                                        className="relative w-10 h-10 md:w-14 md:h-14 rounded-xl object-cover border border-white/10"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     ))}
                 </div>

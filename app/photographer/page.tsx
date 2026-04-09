@@ -54,7 +54,7 @@ export default function PhotographerPage() {
           Stop spending hours sorting and sending photos. GoldenFocus AI does it all — automatically.
         </p>
         <div className="flex gap-4 flex-wrap justify-center">
-          <Link href="/#signup" className="px-8 py-3 bg-yellow-400 text-black font-pixel text-sm hover:bg-yellow-300 transition-colors">
+        <Link href="/#signup" className="px-8 py-3 bg-yellow-400 text-black font-pixel text-sm hover:bg-yellow-300 transition-colors">
             Start Free
           </Link>
           <Link href="/pricing" className="px-8 py-3 border border-yellow-400/40 text-white text-sm hover:border-yellow-400 hover:text-yellow-400 transition-colors">
