@@ -1,26 +1,23 @@
 "use client";
 
 import { useMemo } from "react";
-import type { AspectRatio, GeneratedItem } from "@/lib/types";
+import type { AspectRatio, GeneratedItem, FeedEntry } from "@/lib/types";
 import type { HistoryRow } from "@/lib/queries/user-history";
-import type { FeedEntry } from "@/components/studio/types";
 
 export function useStudioFeed(items: GeneratedItem[], dbHistory: HistoryRow[]) {
   return useMemo<FeedEntry[]>(() => {
     const inMemoryIds = new Set(items.map((i) => i.id));
     const dbCompleted = dbHistory
-      .filter(
-        (h) => !inMemoryIds.has(h.id) && (h.image_url || h.video_url),
-      )
+      .filter((h) => !inMemoryIds.has(h.id) && h.image_url)
       .map((h) => ({
         id: h.id,
-        mode: h.mode as "image" | "video",
+        mode: "image" as const,
         prompt: h.prompt,
         aspectRatio: h.aspect_ratio as AspectRatio,
-        src: h.video_url || h.image_url!,
-        posterUrl: h.mode === "video" ? h.image_url : null,
-        muxPlaybackId: h.mux_playback_id ?? null,
-        isVideo: h.mode === "video",
+        src: h.image_url!,
+        posterUrl: null,
+        muxPlaybackId: null,
+        isVideo: false as const,
         isDb: true as const,
       }));
     return [

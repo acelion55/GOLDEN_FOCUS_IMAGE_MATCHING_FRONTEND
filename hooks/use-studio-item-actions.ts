@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import type { GeneratedItem, AspectRatio, GenerationMode } from "@/lib/types";
-import type { ExploreSelectionType } from "@/components/studio/types";
+import type { GeneratedItem, AspectRatio, GenerationMode, ExploreSelectionType } from "@/lib/types";
 import { detectMimeFromBase64, downloadOrOpen } from "@/lib/utils";
 
 interface UseStudioItemActionsParams {
@@ -16,7 +15,6 @@ interface UseStudioItemActionsParams {
   setMode: (m: GenerationMode) => void;
   setAspectRatio: (r: AspectRatio) => void;
   setPrompt: (v: string) => void;
-  setVideoAttachment: (v: string | null) => void;
   setShowExplore: (v: boolean) => void;
   setExploreSelection: (v: ExploreSelectionType) => void;
   exploreDeleteRef: React.RefObject<((id: string) => void) | null>;
@@ -29,7 +27,6 @@ export function useStudioItemActions({
   setMode,
   setAspectRatio,
   setPrompt,
-  setVideoAttachment,
   setShowExplore,
   setExploreSelection,
   exploreDeleteRef,
@@ -68,8 +65,6 @@ export function useStudioItemActions({
       );
     } else if (item.mode === "image" && item.imageUrl) {
       downloadOrOpen(item.imageUrl, `grok-${item.id.slice(0, 8)}.png`);
-    } else if (item.mode === "video" && item.videoUrl) {
-      downloadOrOpen(item.videoUrl, `goldenfocus-${item.id.slice(0, 8)}.mp4`);
     }
   }, []);
 
@@ -153,25 +148,18 @@ export function useStudioItemActions({
   // ── Explore actions ──
   const handleEditExplore = useCallback(
     (selection: NonNullable<ExploreSelectionType>) => {
-      if (selection.isVideo) {
-        setVideoAttachment(selection.src);
-        setMode("video");
-        setPrompt("");
-      } else {
-        setMode("image");
-        setPrompt("");
-        toBase64Attachment(selection.src).then((b64) => {
-          if (b64) setAttachment(b64);
-        });
-      }
+      setMode("image");
+      setPrompt("");
+      toBase64Attachment(selection.src).then((b64) => {
+        if (b64) setAttachment(b64);
+      });
     },
-    [toBase64Attachment, setVideoAttachment, setMode, setPrompt, setAttachment],
+    [toBase64Attachment, setMode, setPrompt, setAttachment],
   );
 
   const handleDownloadExplore = useCallback(
     (selection: NonNullable<ExploreSelectionType>) => {
-      const ext = selection.isVideo ? "mp4" : "png";
-      downloadOrOpen(selection.src, `${selection.alt.slice(0, 40)}.${ext}`);
+      downloadOrOpen(selection.src, `${selection.alt.slice(0, 40)}.png`);
     },
     [],
   );

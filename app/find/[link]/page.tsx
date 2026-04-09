@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, Suspense } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ interface MatchedPhoto {
 
 type Step = "landing" | "capture" | "results";
 
-export default function CustomerPortalPage() {
+function CustomerPortalContent() {
   const { link } = useParams<{ link: string }>();
   const [photographer, setPhotographer] = useState<Photographer | null>(null);
   const [event, setEvent] = useState<EventInfo | null>(null);
@@ -318,5 +318,13 @@ export default function CustomerPortalPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function CustomerPortalPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><div className="text-muted-foreground">Loading...</div></div>}>
+      <CustomerPortalContent />
+    </Suspense>
   );
 }

@@ -92,72 +92,13 @@ export async function fetchExplorePage(
 ): Promise<ExplorePage> {
   if (!hasDatabase) return seedExplorePage(cursor, limit);
 
-  const rows = cursor
-    ? ((await sql`
-        SELECT
-          g.id,
-          g.user_id,
-          g.prompt,
-          g.aspect_ratio,
-          g.image_url,
-          g.video_url,
-          g.mux_playback_id,
-          g.mode,
-          g.created_at,
-          g.color,
-          g.blur_data,
-          u.name  AS user_name,
-          u.avatar_url AS user_avatar
-        FROM generations g
-        LEFT JOIN users u ON g.user_id = u.id
-        WHERE (g.image_url IS NOT NULL OR g.video_url IS NOT NULL)
-          AND (g.created_at < ${cursor.created_at}::timestamptz
-               OR (g.created_at = ${cursor.created_at}::timestamptz AND g.id::text < ${cursor.id}))
-        ORDER BY g.created_at DESC, g.id DESC
-        LIMIT ${limit}
-      `) as ExploreRow[])
-    : ((await sql`
-        SELECT
-          g.id,
-          g.user_id,
-          g.prompt,
-          g.aspect_ratio,
-          g.image_url,
-          g.video_url,
-          g.mux_playback_id,
-          g.mode,
-          g.created_at,
-          g.color,
-          g.blur_data,
-          u.name  AS user_name,
-          u.avatar_url AS user_avatar
-        FROM generations g
-        LEFT JOIN users u ON g.user_id = u.id
-        WHERE (g.image_url IS NOT NULL OR g.video_url IS NOT NULL)
-        ORDER BY g.created_at DESC, g.id DESC
-        LIMIT ${limit}
-      `) as ExploreRow[]);
-
-  const nextCursor =
-    rows.length === limit ? encodeCursor(rows[rows.length - 1]) : null;
-
-  return { items: rows, nextCursor };
+  throw new Error("Database not configured");
 }
 
 export async function fetchExploreById(id: string): Promise<ExploreRow | null> {
   if (!hasDatabase) return seedExploreById(id);
 
-  const rows = await sql`
-    SELECT
-      g.id, g.user_id, g.prompt, g.aspect_ratio, g.image_url, g.video_url, g.mux_playback_id,
-      g.mode, g.created_at, g.color, g.blur_data,
-      u.name AS user_name, u.avatar_url AS user_avatar
-    FROM generations g
-    LEFT JOIN users u ON g.user_id = u.id
-    WHERE g.id = ${id}
-      AND (g.image_url IS NOT NULL OR g.video_url IS NOT NULL)
-  `;
-  return (rows[0] as ExploreRow) ?? null;
+  throw new Error("Database not configured");
 }
 
 /* ---- Server-side search (mirrors /api/explore/search logic) ---- */
@@ -171,35 +112,7 @@ function escapeRegex(s: string) {
 }
 
 function textSearch(query: string) {
-  const words = query.split(/\s+/).filter(Boolean);
-  if (words.length === 1) {
-    const wordPattern = `\\y${escapeRegex(query)}\\y`;
-    return sql`
-      SELECT
-        g.id, g.user_id, g.prompt, g.aspect_ratio, g.image_url, g.video_url, g.mux_playback_id,
-        g.mode, g.created_at, g.color, g.blur_data,
-        u.name AS user_name, u.avatar_url AS user_avatar
-      FROM generations g
-      LEFT JOIN users u ON g.user_id = u.id
-      WHERE (g.image_url IS NOT NULL OR g.video_url IS NOT NULL)
-        AND g.prompt ~* ${wordPattern}
-      ORDER BY g.created_at DESC
-      LIMIT 40
-    `;
-  }
-  const likePattern = `%${escapeLike(query)}%`;
-  return sql`
-    SELECT
-      g.id, g.user_id, g.prompt, g.aspect_ratio, g.image_url, g.video_url, g.mux_playback_id,
-      g.mode, g.created_at, g.color, g.blur_data,
-      u.name AS user_name, u.avatar_url AS user_avatar
-    FROM generations g
-    LEFT JOIN users u ON g.user_id = u.id
-    WHERE (g.image_url IS NOT NULL OR g.video_url IS NOT NULL)
-      AND g.prompt ILIKE ${likePattern}
-    ORDER BY g.created_at DESC
-    LIMIT 40
-  `;
+  throw new Error("Database not configured");
 }
 
 export interface SearchResult {
@@ -211,44 +124,11 @@ export const fetchSearchResults = cache(async function fetchSearchResults(query:
     return { items: [] };
   }
 
-  // No database: use local text search on seed data
   if (!hasDatabase) {
     return { items: localTextSearch(query) };
   }
 
-  const [textRows, storeResults] = await Promise.all([
-    textSearch(query),
-    searchStore(query).catch((err) => {
-      console.error("[search] Store search failed:", err);
-      return [] as { generationId: string; score: number }[];
-    }),
-  ]);
-
-  if (storeResults.length > 0) {
-    const ids = storeResults.map((r) => r.generationId);
-    const rows = await sql`
-      SELECT
-        g.id, g.user_id, g.prompt, g.aspect_ratio, g.image_url, g.video_url, g.mux_playback_id,
-        g.mode, g.created_at, g.color, g.blur_data,
-        u.name AS user_name, u.avatar_url AS user_avatar
-      FROM generations g
-      LEFT JOIN users u ON g.user_id = u.id
-      WHERE g.id = ANY(${ids})
-        AND (g.image_url IS NOT NULL OR g.video_url IS NOT NULL)
-    `;
-
-    const rowMap = new Map(rows.map((r) => [r.id as string, r]));
-    const storeItems = storeResults
-      .map((r) => rowMap.get(r.generationId))
-      .filter(Boolean);
-
-    const seen = new Set(textRows.map((r) => r.id as string));
-    const extra = storeItems.filter((r) => !seen.has(r!.id as string));
-
-    return { items: [...textRows, ...extra] as ExploreRow[] };
-  }
-
-  return { items: textRows as ExploreRow[] };
+  throw new Error("Database not configured");
 });
 
 // ---- Shared blur helper ----
@@ -324,20 +204,7 @@ export async function fetchExploreByOffset(
     return { items, nextCursor: null };
   }
 
-  const rows = (await sql`
-    SELECT
-      g.id, g.user_id, g.prompt, g.aspect_ratio, g.image_url, g.video_url, g.mux_playback_id,
-      g.mode, g.created_at, g.color, g.blur_data,
-      u.name AS user_name, u.avatar_url AS user_avatar
-    FROM generations g
-    LEFT JOIN users u ON g.user_id = u.id
-    WHERE (g.image_url IS NOT NULL OR g.video_url IS NOT NULL)
-    ORDER BY g.created_at DESC, g.id DESC
-    OFFSET ${offset}
-    LIMIT ${limit}
-  `) as ExploreRow[];
-
-  return { items: rows, nextCursor: null };
+  throw new Error("Database not configured");
 }
 
 export async function getExplorePageByOffset(offset: number) {

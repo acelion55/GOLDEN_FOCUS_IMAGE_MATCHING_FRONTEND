@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import gsap from "gsap";
@@ -14,7 +14,7 @@ const navLinks = [
   { href: "/faq", label: "FAQ" },
 ];
 
-export function Navbar() {
+function NavbarContent() {
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -179,5 +179,13 @@ export function Navbar() {
         </div>
       </div>
     </nav>
+  );
+}
+
+export function Navbar() {
+  return (
+    <Suspense fallback={null}>
+      <NavbarContent />
+    </Suspense>
   );
 }

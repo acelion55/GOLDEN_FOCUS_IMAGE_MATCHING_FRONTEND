@@ -9,12 +9,22 @@ export type AspectRatio =
 
 export type GenerationMode = "image" | "video";
 
-export interface VideoProgress {
-  status: "pending" | "in_progress" | "completed" | "failed";
-  url?: string;
-  muxPlaybackId?: string;
-  error?: string;
-}
+export type ExploreSelectionType = { id: string; src: string; alt: string } | null;
+export type GenerationSelectionType = null;
+
+export type FeedEntry =
+  | (GeneratedItem & { isDb: false })
+  | {
+      id: string;
+      mode: "image";
+      prompt: string;
+      aspectRatio: AspectRatio;
+      src: string;
+      posterUrl: null;
+      muxPlaybackId: null;
+      isVideo: false;
+      isDb: true;
+    };
 
 export interface GeneratedItem {
   id: string;
@@ -24,9 +34,4 @@ export interface GeneratedItem {
   timestamp: number;
   base64?: string;
   imageUrl?: string;
-  videoUrl?: string;
-  muxPlaybackId?: string;
-  videoStatus?: VideoProgress["status"];
-  videoError?: string;
-  runId?: string;
 }

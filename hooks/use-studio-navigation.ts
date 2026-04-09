@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, type RefObject } from "react";
-import type { ExploreSelectionType, GenerationSelectionType } from "@/components/studio/types";
+import type { ExploreSelectionType, GenerationSelectionType } from "@/lib/types";
 
 interface UseStudioNavigationParams {
   showExplore: boolean;
