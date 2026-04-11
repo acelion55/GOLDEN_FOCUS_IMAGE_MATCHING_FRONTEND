@@ -17,29 +17,47 @@ if (typeof window !== "undefined") {
 
 export default function LandingPage() {
   return (
-    <div className="w-full bg-black/80 text-foreground">
+    <div className="w-full bg-black/85 text-foreground">
+      {/* 1. Hero Section */}
       <HeroSection />
 
-      <div className="top-[105vh] z-11 relative">
-        <LazyLoad fallback={<div className="w-full h-[140vh] bg-[#6b7a8f] animate-pulse" />}>
-          <MethodologySection />
-        </LazyLoad>
+      <div className="relative z-10 pt-[105vh]">
+        
+        {/* 2. Methodology Section (Z-10) */}
+        <div className="relative z-10"> 
+          <LazyLoad fallback={<div className="w-full h-screen bg-white animate-pulse" />}>
+            <MethodologySection />
+          </LazyLoad>
+        </div>
 
-        <LazyLoad fallback={<div className="w-full h-[200vh] bg-[#8497ab] animate-pulse" />}>
-          <ZoomSection />
-        </LazyLoad>
+        {/* 3. Zoom Section (Z-20) - Methodology ke upar slide hoga */}
+        <div className="relative z-20">
+          <LazyLoad fallback={<div className="w-full h-[200vh] bg-[#8497ab] animate-pulse" />}>
+            <ZoomSection />
+          </LazyLoad>
+        </div>
 
-        <LazyLoad fallback={<div className="w-full h-[120vh] bg-[#8497ab] animate-pulse" />}>
-          <WhatWeDoSection />
-        </LazyLoad>
+        {/* 4. What We Do Section (Z-30) - Zoom ke upar slide hoga */}
+        <div className="relative z-30">
+          <LazyLoad fallback={<div className="w-full h-screen bg-[#8497ab] animate-pulse" />}>
+            <WhatWeDoSection />
+          </LazyLoad>
+        </div>
 
-        <LazyLoad fallback={<div className="w-full h-[140vh] bg-[#8e9487] animate-pulse" />}>
-          <WhyGoldenFocusSection />
-        </LazyLoad>
+        {/* 5. Why GoldenFocus (Z-40) - Iska design ab aapke Methodology wale code jaisa hi hoga */}
+        <div className="relative z-40">
+          <LazyLoad fallback={<div className="w-full h-screen bg-white animate-pulse" />}>
+            <WhyGoldenFocusSection />
+          </LazyLoad>
+        </div>
 
-        <LazyLoad fallback={<div className="w-full h-[180vh] bg-[#f5793b] animate-pulse" />}>
-          <HowItWorksSection />
-        </LazyLoad>
+        {/* 6. How It Works (Z-50) */}
+        <div className="relative z-50">
+          <LazyLoad fallback={<div className="w-full h-screen bg-[#f5793b] animate-pulse" />}>
+            <HowItWorksSection />
+          </LazyLoad>
+        </div>
+
       </div>
     </div>
   );
