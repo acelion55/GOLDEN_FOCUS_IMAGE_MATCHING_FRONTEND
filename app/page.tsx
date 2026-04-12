@@ -25,13 +25,12 @@ export default function LandingPage() {
         
         {/* 2. Methodology Section (Z-10) */}
         <div className="relative z-10"> 
-          <LazyLoad fallback={<div className="w-full h-screen bg-white animate-pulse" />}>
             <MethodologySection />
-          </LazyLoad>
+      
         </div>
 
         {/* 3. Zoom Section (Z-20) - Methodology ke upar slide hoga */}
-        <div className="relative z-20">
+        <div className="relative  z-20">
           <LazyLoad fallback={<div className="w-full h-[200vh] bg-[#8497ab] animate-pulse" />}>
             <ZoomSection />
           </LazyLoad>

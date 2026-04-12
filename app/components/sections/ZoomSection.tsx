@@ -21,8 +21,8 @@ export default function ZoomSection() {
       gsap.timeline({
         scrollTrigger: {
           trigger: zoomSectionRef.current,
-          start: "top top", // Pinning starting at top for better sync
-          end: "40%",    // Section ki height ke barabar scroll length
+          start: "top top",
+          end: "40%",    
           scrub: 1,
           pin: true,
         },
@@ -41,7 +41,7 @@ export default function ZoomSection() {
   }, []);
 
   return (
-    <section ref={zoomSectionRef} className="relative w-full h-[200vh] bg-[#8497ab] overflow-hidden">
+    <section ref={zoomSectionRef} className="relative w-full h-[200vh] bg-transparent  overflow-hidden -mt-[40vh]">
       {/* Wrapper to hold everything centered */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         
