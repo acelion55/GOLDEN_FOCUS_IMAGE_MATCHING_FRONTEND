@@ -10,6 +10,7 @@ import WhatWeDoSection from "./components/sections/WhatWeDoSection";
 import WhyGoldenFocusSection from "./components/sections/WhyGoldenFocusSection";
 import HowItWorksSection from "./components/sections/HowItWorksSection";
 import LazyLoad from "./components/LazyLoad";
+import Scrolling from "./components/sections/scrolling";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -18,23 +19,21 @@ if (typeof window !== "undefined") {
 export default function LandingPage() {
   return (
     <div className="w-full bg-black/85 text-foreground">
-      {/* 1. Hero Section */}
       <HeroSection />
 
       <div className="relative z-10 pt-[105vh]">
         
-        {/* 2. Methodology Section (Z-10) */}
         <div className="relative z-10"> 
             <MethodologySection />
       
         </div>
 
         {/* 3. Zoom Section (Z-20) - Methodology ke upar slide hoga */}
-        <div className="relative  z-20">
-          <LazyLoad fallback={<div className="w-full h-[200vh] bg-[#8497ab] animate-pulse" />}>
+        <div className="relative z-20">
             <ZoomSection />
-          </LazyLoad>
         </div>
+
+        
 
         {/* 4. What We Do Section (Z-30) - Zoom ke upar slide hoga */}
         <div className="relative z-30">

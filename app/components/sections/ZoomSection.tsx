@@ -3,6 +3,7 @@
 import { useRef, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Scrolling from "../sections/scrolling"
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -41,16 +42,16 @@ export default function ZoomSection() {
   }, []);
 
   return (
-    <section ref={zoomSectionRef} className="relative w-full h-[200vh] bg-transparent  overflow-hidden -mt-[40vh]">
+    <section ref={zoomSectionRef} className="relative w-full   h-[180vh] bg-transparent  overflow-hidden ">
       {/* Wrapper to hold everything centered */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         
         {/* 1. Background Image */}
         <img
           ref={bgImageRef}
           src="/screenzoom.png"
           alt="Background"
-          className="w-full h-auto object-contain will-change-transform"
+          className="w-full h-auto z-10 object-contain will-change-transform"
         />
 
         {/* 2. Circle Image Overlay */}
@@ -60,7 +61,7 @@ export default function ZoomSection() {
           alt="Center Circle"
           className="absolute z-10 w-[90%] md:w-[60%] -ml-[3.5%] h-auto will-change-transform"
         />
-
+      
         {/* 3. Middle Text Overlay (Left Aligned) */}
         <div 
           ref={textRef}
@@ -79,6 +80,9 @@ export default function ZoomSection() {
         </div>
 
       </div>
+ <div className="relative  z-0">
+      <div className=" z-0"><Scrolling /></div>
+        </div>
     </section>
   );
 }

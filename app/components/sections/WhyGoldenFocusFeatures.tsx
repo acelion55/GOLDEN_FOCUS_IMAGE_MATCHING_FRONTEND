@@ -49,17 +49,17 @@ export default function WhyGoldenFocusFeatures() {
         {features.map((item, i) => (
           <div 
             key={i} 
-            className="feature-row group relative h-[13vh] lg:h-[13vh] border-b border-white/20 overflow-hidden "
+            className="feature-row group relative h-[13vh] lg:h-[13vh] border-b border-white/20 overflow-hidden"
           >
-            {/* 1. TITLE: Hover होने पर ऊपर जाकर गायब होगा */}
-            <div className="absolute inset-0 flex items-center transition-all duration-500 ease-in-out transform group-hover:-translate-y-full group-hover:opacity-0">
+            {/* 1. TITLE */}
+            <div className="feature-title absolute inset-0 flex items-center group-hover:-translate-y-full group-hover:opacity-0" style={{ transitionProperty: "none" }}>
               <h4 className="text-[24px] lg:text-[3rem] font-bold leading-none tracking-tighter text-white">
                 {item.title}
               </h4>
             </div>
 
-            {/* 2. DESCRIPTION: नीचे से ऊपर आएगा और टाइटल की जगह लेगा */}
-            <div className="absolute inset-0 flex items-center transition-all duration-500 ease-in-out transform translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100">
+            {/* 2. DESCRIPTION */}
+            <div className="feature-description absolute inset-0 flex items-center translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100" style={{ transitionProperty: "none" }}>
               <p className="text-[14px] lg:text-[1.2rem] text-[#a3925d] font-medium max-w-[80%]">
                 {item.desc}
               </p>

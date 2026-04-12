@@ -1,5 +1,6 @@
 "use client";
 
+
 const features = [
   { icon: "📸", title: "Upload Event Photos", desc: "Photographers upload bulk photos from weddings, sports events, graduations, and more." },
   { icon: "🤖", title: "AI Face Matching", desc: "Our AI scans and indexes every face in every photo automatically — no manual tagging needed." },
@@ -9,6 +10,7 @@ const features = [
 export default function WhatWeDoSection() {
   return (
     <section className="w-full h-[120vh] sticky -top-20 flex flex-col items-center justify-center px-[4vw] py-[4vh] border-b border-border bg-[#8497ab]">
+     
       <h2 className="font-pixel text-[2.5vw] md:text-[3.5vw] text-yellow-400 mb-[6vh] text-center">What We Do</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[3vw] w-full max-w-[90vw]">
         {features.map((item) => (

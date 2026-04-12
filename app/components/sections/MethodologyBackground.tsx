@@ -15,7 +15,6 @@ export default function MethodologyBackground() {
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
 
   useEffect(() => {
-    // Wait for DOM to be ready
     const timer = setTimeout(() => {
       const observer = new IntersectionObserver(
         (entries) => {
@@ -38,9 +37,54 @@ export default function MethodologyBackground() {
               const currentLayer = document.querySelector(`.bg-layer-${cardIndex}`) as HTMLElement;
               if (currentLayer) {
                 gsap.to(currentLayer, {
-                  opacity: 6,
+                  opacity: 0.6,
                   duration: 0.4,
                 });
+              }
+
+              // Find the features container and get all rows
+              const featuresContainer = document.querySelector(".features-container");
+              if (featuresContainer) {
+                const featureRows = featuresContainer.querySelectorAll(".feature-row");
+                
+                if (featureRows[cardIndex]) {
+                  const currentRow = featureRows[cardIndex] as HTMLElement;
+                  const titleDiv = currentRow.querySelector(".feature-title") as HTMLElement;
+                  const descDiv = currentRow.querySelector(".feature-description") as HTMLElement;
+
+                  // Kill any existing animations on these elements
+                  if (titleDiv) gsap.killTweensOf(titleDiv);
+                  if (descDiv) gsap.killTweensOf(descDiv);
+
+                  // Animate title - move UP and disappear
+                  if (titleDiv) {
+                    gsap.to(titleDiv, 
+                      { 
+                        y: -100,
+                        opacity: 0,
+                        duration: 0.8,
+                        ease: "power2.out",
+                      }
+                    );
+                  }
+
+                  // Animate description - move UP from below
+                  if (descDiv) {
+                    gsap.fromTo(descDiv, 
+                      { 
+                        y: 100,
+                        opacity: 0,
+                      },
+                      {
+                        y: 0,
+                        opacity: 1,
+                        duration: 0.8,
+                        ease: "power2.out",
+                        delay: 0.1,
+                      }
+                    );
+                  }
+                }
               }
             }
           });

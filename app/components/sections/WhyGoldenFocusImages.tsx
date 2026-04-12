@@ -27,7 +27,7 @@ export default function WhyGoldenFocusImages() {
         scrollTrigger: {
           trigger: ".why-pinned-section",
           start: "top top",
-          end: "+=3500",
+          end: "+=3000",
           scrub: 1,
         }
       });
