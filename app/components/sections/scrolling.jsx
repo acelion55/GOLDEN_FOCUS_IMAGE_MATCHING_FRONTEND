@@ -85,12 +85,12 @@ export default function HorizontalInfiniteScroll() {
   return (
     <div ref={containerRef} className="bg-zinc-950 font-sans min-h-screen overflow-hidden">
       
-      <section className=" h-[180vh] flex items-center justify-center bg-[#c9838a]" style={{ perspective: "2500px" }}>
+      <section className=" h-[180vh] flex  items-center justify-center bg-[#c9838a]" style={{ perspective: "2500px" }}>
         
-          <div className="sticky top-[50vh] bg-slate-600 flex items-center  justify-center w-0 h-0" style={{ transformStyle: "preserve-3d" }}>
+          <div className=" flex items-center  justify-center w-0 h-0" style={{ transformStyle: "preserve-3d" }}>
           
           <div
-            className="flex items-center bg-amber-400 transition-transform duration-1000 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+            className="flex items-center transition-transform duration-1000 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
             style={{
               transformStyle: "preserve-3d",
               transform: `translateX(${-currentIndex * (settings.cardWidth + settings.gap)}px)`,
@@ -101,6 +101,7 @@ export default function HorizontalInfiniteScroll() {
               const isPast = idx < currentIndex;
 
               return (
+                <div className="sticky top-1/2">
                 <div
                   key={idx}
                   className="curved-card absolute flex-shrink-0"
@@ -177,6 +178,7 @@ export default function HorizontalInfiniteScroll() {
                       <div className="p-2 text-[6px] text-black font-mono tracking-tighter">SCENE {idx + 1} // TAKE 1</div>
                     </div>
                   </div>
+                </div>
                 </div>
               );
             })}

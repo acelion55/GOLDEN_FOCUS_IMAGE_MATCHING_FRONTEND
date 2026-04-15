@@ -22,7 +22,7 @@ export default function ZoomSection() {
       gsap.timeline({
         scrollTrigger: {
           trigger: zoomSectionRef.current,
-          start: "top top",
+          start: "top -20%",
           end: "40%",    
           scrub: 1,
           pin: true,

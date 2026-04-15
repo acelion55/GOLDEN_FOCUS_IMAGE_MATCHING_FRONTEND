@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import gsap from "gsap";
 
 const scrollingImages = [
@@ -12,7 +12,7 @@ const scrollingImages = [
 
 export default function MethodologyBackground() {
   const bgContainerRef = useRef<HTMLDivElement>(null);
-  const [currentBgIndex, setCurrentBgIndex] = useState(0);
+  const prevIndexRef = useRef(-1);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -22,89 +22,31 @@ export default function MethodologyBackground() {
             if (entry.isIntersecting) {
               const cardIndex = parseInt(entry.target.getAttribute("data-index") || "0");
               
-              // Fade out all layers
+              // Change background image
               scrollingImages.forEach((_, idx) => {
                 const layer = document.querySelector(`.bg-layer-${idx}`) as HTMLElement;
                 if (layer) {
-                  gsap.to(layer, {
-                    opacity: 0,
-                    duration: 0.4,
-                  });
+                  gsap.to(layer, { opacity: 0, duration: 0.4 });
                 }
               });
               
-              // Fade in current layer
               const currentLayer = document.querySelector(`.bg-layer-${cardIndex}`) as HTMLElement;
               if (currentLayer) {
-                gsap.to(currentLayer, {
-                  opacity: 0.6,
-                  duration: 0.4,
-                });
+                gsap.to(currentLayer, { opacity: 0.6, duration: 0.4 });
               }
 
-              // Find the features container and get all rows
-              const featuresContainer = document.querySelector(".features-container");
-              if (featuresContainer) {
-                const featureRows = featuresContainer.querySelectorAll(".feature-row");
-                
-                if (featureRows[cardIndex]) {
-                  const currentRow = featureRows[cardIndex] as HTMLElement;
-                  const titleDiv = currentRow.querySelector(".feature-title") as HTMLElement;
-                  const descDiv = currentRow.querySelector(".feature-description") as HTMLElement;
-
-                  // Kill any existing animations on these elements
-                  if (titleDiv) gsap.killTweensOf(titleDiv);
-                  if (descDiv) gsap.killTweensOf(descDiv);
-
-                  // Animate title - move UP and disappear
-                  if (titleDiv) {
-                    gsap.to(titleDiv, 
-                      { 
-                        y: -100,
-                        opacity: 0,
-                        duration: 0.8,
-                        ease: "power2.out",
-                      }
-                    );
-                  }
-
-                  // Animate description - move UP from below
-                  if (descDiv) {
-                    gsap.fromTo(descDiv, 
-                      { 
-                        y: 100,
-                        opacity: 0,
-                      },
-                      {
-                        y: 0,
-                        opacity: 1,
-                        duration: 0.8,
-                        ease: "power2.out",
-                        delay: 0.1,
-                      }
-                    );
-                  }
-                }
-              }
+              prevIndexRef.current = cardIndex;
             }
           });
         },
-        {
-          threshold: 0.5,
-          root: null,
-        }
+        { threshold: 0.5, root: null }
       );
 
-      // Observe all cards
       const cards = document.querySelectorAll(".individual-image-card");
-      cards.forEach((card) => {
-        observer.observe(card);
-      });
+      cards.forEach((card) => observer.observe(card));
 
       return () => {
-        cards.forEach((card) => {
-          observer.unobserve(card);
-        });
+        cards.forEach((card) => observer.unobserve(card));
         observer.disconnect();
       };
     }, 500);
