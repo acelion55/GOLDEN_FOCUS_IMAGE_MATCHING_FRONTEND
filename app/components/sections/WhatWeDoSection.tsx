@@ -15,7 +15,7 @@ export default function WhatWeDoSection() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[3vw] w-full max-w-[90vw]">
         {features.map((item) => (
           <div key={item.title} className="border border-white/10 bg-white/5 backdrop-blur p-[2vw] flex flex-col gap-[1.5vh] rounded-xl h-fit">
-            <span className="text-[3vw] md:text-[4vw] lg:text-[3vw]">{item.icon}</span>
+            <span className="text-[3vw]  md:text-[4vw] lg:text-[3vw]">{item.icon}</span>
             <h3 className="font-pixel text-[1.3vw] md:text-[2vw] lg:text-[1.3vw] text-white">{item.title}</h3>
             <p className="text-white/50 text-[1vw] md:text-[1.5vw] lg:text-[1vw]">{item.desc}</p>
           </div>
