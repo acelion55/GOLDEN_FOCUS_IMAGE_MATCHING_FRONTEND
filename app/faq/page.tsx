@@ -1,146 +1,281 @@
 "use client";
 
-import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
-const categories = [
+const faqCategories = [
   {
-    title: "Getting Started",
-    icon: "🚀",
-    faqs: [
-      { q: "How do I sign up as a photographer?", a: "Click 'Get Started' on the home page, fill in your details, and submit. Our team reviews and approves accounts within 24 hours." },
-      { q: "Is GoldenFocus AI free to use?", a: "Yes! The Starter plan is completely free — up to 3 events and 500 photos per event. Upgrade anytime for more capacity." },
-      { q: "What types of events does it work for?", a: "Any event with people — weddings, marathons, school events, corporate gatherings, sports events, graduations, and more." },
-    ],
+    category: "Getting Started",
+    questions: [
+      {
+        question: "How do I sign up for GoldenFocus AI?",
+        answer: "Simply click the 'Get Started' button, fill out the registration form, and our team will review your application within 24 hours. Once approved, you'll receive login credentials and can start uploading photos immediately."
+      },
+      {
+        question: "Is there a free trial available?",
+        answer: "Yes! We offer a 14-day free trial for all new users. No credit card required. You can test all features and see how GoldenFocus AI works for your photography business."
+      },
+      {
+        question: "What file formats do you support?",
+        answer: "We support all major image formats including JPEG, PNG, TIFF, and RAW files from most camera manufacturers (Canon, Nikon, Sony, etc.)."
+      }
+    ]
   },
   {
-    title: "Face Recognition",
-    icon: "🤖",
-    faqs: [
-      { q: "How accurate is the face matching?", a: "Our AI achieves 95%+ accuracy in well-lit conditions. Accuracy improves with clear, front-facing photos." },
-      { q: "What if a customer isn't found?", a: "They can try again with a clearer selfie. We recommend a well-lit, front-facing photo without sunglasses." },
-      { q: "How long does photo processing take?", a: "Most photos are processed within 2-5 minutes after upload. Large batches (1000+ photos) may take up to 15 minutes." },
-    ],
+    category: "AI Technology",
+    questions: [
+      {
+        question: "How accurate is the face recognition?",
+        answer: "Our AI achieves 99.9% accuracy in face detection and matching. The system works effectively across different lighting conditions, angles, and even with partial face visibility."
+      },
+      {
+        question: "How long does photo processing take?",
+        answer: "Processing time depends on the number of photos and faces. Typically, 1,000 photos with 100 unique faces are processed within 5-10 minutes."
+      },
+      {
+        question: "Can the AI recognize faces with masks or sunglasses?",
+        answer: "Yes, our advanced AI can identify faces even with partial obstructions like masks, sunglasses, or hats, though accuracy may be slightly reduced in these cases."
+      }
+    ]
   },
   {
-    title: "Privacy & Security",
-    icon: "🔒",
-    faqs: [
-      { q: "Is customer face data stored?", a: "No. Face data is processed in real-time and immediately discarded. We never store biometric data permanently." },
-      { q: "Can customers see other people's photos?", a: "Never. Each customer only sees photos they personally appear in — nothing else is accessible." },
-      { q: "Are my uploaded photos secure?", a: "Yes. Photos are stored on encrypted cloud storage with access controls. Only you and your customers can access them." },
-    ],
+    category: "Privacy & Security",
+    questions: [
+      {
+        question: "How secure are uploaded photos?",
+        answer: "We use bank-grade encryption (AES-256) for all data transmission and storage. Photos are stored on secure servers with multiple backup systems and are automatically deleted after 30 days."
+      },
+      {
+        question: "Who can access the photos?",
+        answer: "Only you (the photographer) and the specific clients who appear in photos can access them. Our AI ensures clients only see photos they appear in, maintaining complete privacy."
+      },
+      {
+        question: "Do you comply with privacy regulations?",
+        answer: "Yes, we are fully compliant with GDPR, CCPA, and other major privacy regulations. We have strict data handling policies and never share or sell user data."
+      }
+    ]
   },
   {
-    title: "Billing & Plans",
-    icon: "💳",
-    faqs: [
-      { q: "Can I cancel my subscription anytime?", a: "Yes, cancel anytime from your dashboard. No cancellation fees, no questions asked." },
-      { q: "What happens to my data if I cancel?", a: "Your photos and events remain accessible for 30 days after cancellation, giving you time to download everything." },
-      { q: "Do you offer refunds?", a: "Yes — if you're not satisfied within the first 7 days of a paid plan, we'll issue a full refund." },
-    ],
-  },
+    category: "Billing & Plans",
+    questions: [
+      {
+        question: "Can I change my plan anytime?",
+        answer: "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and billing is prorated accordingly."
+      },
+      {
+        question: "What happens if I exceed my plan limits?",
+        answer: "If you exceed your monthly limits, you'll be notified and can either upgrade your plan or pay for additional usage at standard rates."
+      },
+      {
+        question: "Do you offer refunds?",
+        answer: "We offer a 30-day money-back guarantee for annual plans. Monthly plans can be cancelled anytime without penalty."
+      }
+    ]
+  }
 ];
 
-function FaqItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false);
-  const bodyRef = useRef<HTMLDivElement>(null);
+function AnimatedSection({ children, className }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    
+    gsap.fromTo(el.querySelectorAll("[data-anim]"),
+      { opacity: 0, y: 60, scale: 0.95 },
+      {
+        opacity: 1, 
+        y: 0, 
+        scale: 1,
+        duration: 0.8, 
+        stagger: 0.15, 
+        ease: "power3.out",
+        scrollTrigger: { 
+          trigger: el, 
+          start: "top 80%", 
+          once: true 
+        },
+      }
+    );
+  }, []);
+  
+  return <div ref={ref} className={className}>{children}</div>;
+}
+
+function FAQItem({ question, answer, index }: { question: string; answer: string; index: number }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = bodyRef.current;
-    if (!el) return;
-    if (open) {
-      gsap.fromTo(el, { height: 0, opacity: 0 }, { height: "auto", opacity: 1, duration: 0.3, ease: "power2.out" });
-    } else {
-      gsap.to(el, { height: 0, opacity: 0, duration: 0.2, ease: "power2.in" });
+    if (contentRef.current) {
+      if (isOpen) {
+        gsap.to(contentRef.current, {
+          height: "auto",
+          opacity: 1,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      } else {
+        gsap.to(contentRef.current, {
+          height: 0,
+          opacity: 0,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      }
     }
-  }, [open]);
+  }, [isOpen]);
 
   return (
-    <div className="border border-white/10 bg-white/5 rounded-xl overflow-hidden">
+    <div className="border-b border-gray-200 last:border-b-0">
       <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-6 py-4 text-left"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full text-left py-[3vh] flex justify-between items-center hover:text-[#a3925d] transition-colors duration-300"
       >
-        <span className="text-white text-sm font-medium">{q}</span>
-        <span className={`text-yellow-400 font-pixel text-lg transition-transform duration-300 ${open ? "rotate-45" : ""}`}>+</span>
+        <h3 className="text-[16px] lg:text-[18px] font-medium text-[#1a1a1a] pr-4">
+          {question}
+        </h3>
+        <span className={`text-[24px] text-[#a3925d] transition-transform duration-300 ${isOpen ? 'rotate-45' : ''}`}>
+          +
+        </span>
       </button>
-      <div ref={bodyRef} style={{ height: 0, overflow: "hidden", opacity: 0 }}>
-        <p className="px-6 pb-4 text-white/50 text-sm leading-relaxed">{a}</p>
+      <div
+        ref={contentRef}
+        className="overflow-hidden"
+        style={{ height: 0, opacity: 0 }}
+      >
+        <div className="pb-[3vh]">
+          <p className="text-[14px] lg:text-[16px] text-[#666666] leading-relaxed">
+            {answer}
+          </p>
+        </div>
       </div>
     </div>
   );
 }
 
-function AnimatedSection({ children, className }: { children: React.ReactNode; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
+export default function FAQPage() {
+  const heroRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    gsap.fromTo(el.querySelectorAll("[data-anim]"),
-      { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, duration: 0.7, stagger: 0.1, ease: "power2.out",
-        scrollTrigger: { trigger: el, start: "top 80%", once: true } }
-    );
+    if (typeof window === "undefined") return;
+
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline();
+      
+      tl.from(".hero-badge", {
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out"
+      })
+      .from(".hero-title", {
+        y: 50,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out"
+      }, "-=0.6")
+      .from(".hero-subtitle", {
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out"
+      }, "-=0.4");
+
+    }, heroRef);
+
+    return () => ctx.revert();
   }, []);
-  return <div ref={ref} className={className}>{children}</div>;
-}
 
-export default function FaqPage() {
   return (
-    <div className="min-h-screen bg-black/80 text-white pt-[10vh]">
+    <div className="min-h-screen bg-white text-[#1a1a1a] pt-[10vh]">
 
-      {/* STAGE 1 — Hero */}
-      <section className="sticky top-[10vh] z-0 h-[90vh] flex flex-col items-center justify-center text-center px-6 bg-black/90 border-b border-white/10">
-        <p className="font-pixel text-yellow-400 text-xs tracking-widest uppercase mb-4">FAQ</p>
-        <h1 className="font-pixel text-5xl sm:text-7xl text-white leading-tight mb-6">
-          GOT<br /><span className="text-yellow-400">QUESTIONS?</span>
+      {/* Hero Section */}
+      <section ref={heroRef} className="min-h-[80vh] flex flex-col items-center justify-center text-center px-[5vw] bg-white">
+        <p className="hero-badge text-[12px] lg:text-[14px] font-bold tracking-[0.3em] text-[#a3925d] uppercase mb-[2vh]">
+          FAQ
+        </p>
+        <h1 className="hero-title text-[48px] sm:text-[64px] lg:text-[80px] font-serif text-[#1a1a1a] leading-tight mb-[3vh]">
+          Frequently Asked
+          <br />
+          <span className="text-[#a3925d]">Questions</span>
         </h1>
-        <p className="text-white/60 text-lg max-w-xl">
-          Everything you need to know about GoldenFocus AI. Can&apos;t find your answer? Contact us.
+        <p className="hero-subtitle text-[16px] lg:text-[20px] text-[#666666] max-w-[700px] leading-relaxed">
+          Find answers to common questions about GoldenFocus AI. Can't find what you're looking for? Contact our support team.
         </p>
       </section>
 
-      {/* STAGE 2 — FAQ Categories */}
-      {categories.map((cat, i) => (
-        <section
-          key={cat.title}
-          className={`${i % 2 === 0 ? "relative z-10 bg-black/95" : "sticky top-[10vh] z-10 bg-black/90"} border-b border-white/10 px-6 py-24`}
-          style={{ zIndex: 10 + i }}
-        >
-          <AnimatedSection className="max-w-3xl mx-auto">
-            <div data-anim className="flex items-center gap-3 mb-10">
-              <span className="text-3xl">{cat.icon}</span>
-              <h2 className="font-pixel text-xl text-yellow-400">{cat.title}</h2>
-            </div>
-            <div className="flex flex-col gap-3">
-              {cat.faqs.map((f) => (
-                <div data-anim key={f.q}>
-                  <FaqItem q={f.q} a={f.a} />
+      {/* FAQ Categories */}
+      <section className="bg-gray-50 px-[5vw] py-[15vh]">
+        <AnimatedSection>
+          <div className="w-full max-w-[1200px] mx-auto">
+            <div className="space-y-[8vh]">
+              {faqCategories.map((category, categoryIndex) => (
+                <div key={categoryIndex} data-anim>
+                  <h2 className="text-[28px] lg:text-[36px] font-serif text-[#1a1a1a] mb-[4vh] text-center">
+                    {category.category}
+                  </h2>
+                  
+                  <div className="bg-white p-[4vw] shadow-sm">
+                    {category.questions.map((faq, questionIndex) => (
+                      <FAQItem
+                        key={questionIndex}
+                        question={faq.question}
+                        answer={faq.answer}
+                        index={questionIndex}
+                      />
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
-          </AnimatedSection>
-        </section>
-      ))}
+          </div>
+        </AnimatedSection>
+      </section>
 
-      {/* CTA */}
-      <section className="relative z-20 bg-black/95 px-6 py-32 flex flex-col items-center text-center">
+      {/* Still Have Questions */}
+      <section className="bg-white px-[5vw] py-[15vh]">
         <AnimatedSection>
-          <h2 data-anim className="font-pixel text-2xl text-white mb-4">Still have questions?</h2>
-          <p data-anim className="text-white/60 mb-8 max-w-md">Our team is happy to help. Reach out anytime.</p>
-          <div data-anim className="flex gap-4 flex-wrap justify-center">
-            <Link href="/contact" className="px-8 py-3 bg-yellow-400 text-black font-pixel text-sm hover:bg-yellow-300 transition-colors">
-              Contact Us
-            </Link>
-            <a href="https://wa.me/919983745802" target="_blank" rel="noopener noreferrer"
-              className="px-8 py-3 border border-yellow-400/40 text-white text-sm hover:border-yellow-400 hover:text-yellow-400 transition-colors">
-              WhatsApp Us
-            </a>
+          <div className="w-full max-w-[800px] mx-auto text-center">
+            <p data-anim className="text-[12px] lg:text-[14px] font-bold tracking-[0.3em] text-[#a3925d] uppercase mb-[2vh]">
+              Need More Help?
+            </p>
+            <h2 data-anim className="text-[36px] lg:text-[48px] font-serif text-[#1a1a1a] leading-tight mb-[3vh]">
+              Still Have Questions?
+            </h2>
+            <p data-anim className="text-[16px] lg:text-[18px] text-[#666666] mb-[5vh] leading-relaxed">
+              Our support team is here to help. Get in touch and we'll respond within 24 hours.
+            </p>
+            <div data-anim className="flex flex-col sm:flex-row gap-[2vw] justify-center">
+              <button className="px-[3vw] py-[2vh] bg-[#1a1a1a] text-white text-[16px] lg:text-[18px] font-medium hover:bg-[#a3925d] transition-colors duration-300">
+                Contact Support
+              </button>
+              <button className="px-[3vw] py-[2vh] border-2 border-[#1a1a1a] text-[#1a1a1a] text-[16px] lg:text-[18px] font-medium hover:bg-[#1a1a1a] hover:text-white transition-all duration-300">
+                Live Chat
+              </button>
+            </div>
+          </div>
+        </AnimatedSection>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-[#1a1a1a] text-white px-[5vw] py-[15vh]">
+        <AnimatedSection>
+          <div className="w-full max-w-[800px] mx-auto text-center">
+            <h2 data-anim className="text-[36px] lg:text-[48px] font-serif mb-[3vh]">
+              Ready to Get Started?
+            </h2>
+            <p data-anim className="text-[16px] lg:text-[18px] text-white/80 mb-[5vh] leading-relaxed">
+              Join thousands of photographers already using GoldenFocus AI to transform their business.
+            </p>
+            <button data-anim className="px-[4vw] py-[2.5vh] bg-[#a3925d] text-white text-[16px] lg:text-[18px] font-medium hover:bg-[#b8a76b] transition-colors duration-300">
+              Start Free Trial
+            </button>
           </div>
         </AnimatedSection>
       </section>

@@ -51,7 +51,7 @@ export default function ZoomSection() {
           ref={bgImageRef}
           src="/screenzoom.png"
           alt="Background"
-          className="w-full h-auto z-10 object-contain will-change-transform"
+          className="w-full h-auto top-20 z-10 object-contain will-change-transform"
         />
 
         {/* 2. Circle Image Overlay */}

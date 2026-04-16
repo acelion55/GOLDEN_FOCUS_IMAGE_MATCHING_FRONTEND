@@ -2,10 +2,10 @@
 
 import { useRef, useEffect } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
 
 if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(SplitText);
 }
 
 const features = [
@@ -17,97 +17,138 @@ const features = [
 
 export default function WhyGoldenFocusFeatures() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const splitTextsRef = useRef<any[]>([]);
+  const prevIndexRef = useRef(-1);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Entrance Animation
-      gsap.from(".feature-row", {
-        x: -50,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.15,
-        scrollTrigger: {
-          trigger: ".features-container",
-          start: "top 75%",
-          once: true,
-        }
-      });
-    }, containerRef);
+    if (typeof window === "undefined") return;
 
-    return () => ctx.revert();
+    const timer = setTimeout(() => {
+      const rows = containerRef.current?.querySelectorAll(".feature-row");
+      if (!rows) return;
+
+      // Split text only for titles
+      splitTextsRef.current = Array.from(rows).map((row: any) => {
+        const titleDiv = row.querySelector(".feature-title");
+        return new SplitText(titleDiv, { type: "chars", charsClass: "char" });
+      });
+
+      // Setup 3D perspective
+      const width = window.innerWidth;
+      const depth = -width / 8;
+      const transformOrigin = `50% 50% ${depth}px`;
+
+      rows.forEach((row: any, idx: number) => {
+        const titleDiv = row.querySelector(".feature-title");
+        const descDiv = row.querySelector(".feature-description");
+        
+        gsap.set(titleDiv, { 
+          perspective: 700, 
+          transformStyle: "preserve-3d",
+          transformOrigin 
+        });
+
+        gsap.set(descDiv, { 
+          perspective: 700, 
+          transformStyle: "preserve-3d",
+          transformOrigin 
+        });
+        
+        // Initialize title chars visible (rotationX: 0)
+        gsap.set(splitTextsRef.current[idx].chars, { rotationX: 0 });
+        
+        // Initialize description hidden (rotationX: -90)
+        gsap.set(descDiv, { rotationX: -90 });
+      });
+
+      // Listen for image card changes
+      const cardObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const cardIndex = parseInt(entry.target.getAttribute("data-index") || "0");
+              const isScrollingDown = cardIndex > prevIndexRef.current;
+
+              if (cardIndex !== prevIndexRef.current && splitTextsRef.current[cardIndex]) {
+                const row = rows[cardIndex] as HTMLElement;
+                const titleChars = splitTextsRef.current[cardIndex].chars;
+                const descDiv = row.querySelector(".feature-description") as HTMLElement;
+
+                // Kill any existing animations
+                gsap.killTweensOf(titleChars);
+                gsap.killTweensOf(descDiv);
+
+                if (isScrollingDown) {
+                  // Scroll down: title flips out, description flips in
+                  gsap.to(titleChars, {
+                    rotationX: 90,
+                    stagger: 0.03,
+                    duration: 0.4,
+                    ease: "power2.out",
+                    transformOrigin,
+                  });
+                  
+                  gsap.to(descDiv, {
+                    rotationX: 0,
+                    duration: 0.4,
+                    ease: "power2.out",
+                    transformOrigin,
+                    delay: 0.1,
+                  });
+                } else {
+                  // Scroll up: description flips out, title flips in
+                  gsap.to(descDiv, {
+                    rotationX: -90,
+                    duration: 0.4,
+                    ease: "power2.out",
+                    transformOrigin,
+                  });
+                  
+                  gsap.to(titleChars, {
+                    rotationX: 0,
+                    stagger: 0.03,
+                    duration: 0.4,
+                    ease: "power2.out",
+                    transformOrigin,
+                    delay: 0.1,
+                  });
+                }
+
+                prevIndexRef.current = cardIndex;
+              }
+            }
+          });
+        },
+        { 
+          threshold: 0.6,
+          rootMargin: "-20% 0px -20% 0px"
+        }
+      );
+
+      // Wait for images to be available
+      const checkForCards = () => {
+        const cards = document.querySelectorAll(".individual-image-card");
+        if (cards.length > 0) {
+          cards.forEach((card) => cardObserver.observe(card));
+        } else {
+          setTimeout(checkForCards, 100);
+        }
+      };
+
+      checkForCards();
+
+      return () => {
+        const cards = document.querySelectorAll(".individual-image-card");
+        cards.forEach((card) => cardObserver.unobserve(card));
+        cardObserver.disconnect();
+      };
+    }, 800);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    const titleChars = target.querySelectorAll(".title-char");
-    const desc = target.querySelector(".feature-description");
-
-    // 3D Depth Calculation
-    const depth = -target.offsetWidth / 12;
-    const tOrigin = `50% 50% ${depth}px`;
-
-    const tl = gsap.timeline();
-
-    // Title rolls UP and away
-    tl.to(titleChars, {
-      rotationX: 90,
-      y: "-50%",
-      opacity: 0,
-      stagger: 0.02,
-      duration: 0.5,
-      ease: "power2.inOut",
-      transformOrigin: tOrigin,
-    });
-
-    // Description rolls IN from bottom
-    tl.fromTo(desc, 
-      { rotationX: -90, y: "50%", opacity: 0 },
-      { 
-        rotationX: 0, 
-        y: "0%", 
-        opacity: 1, 
-        duration: 0.6, 
-        ease: "power2.out",
-        transformOrigin: tOrigin 
-      }, 
-      "-=0.4"
-    );
-  };
-
-  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    const titleChars = target.querySelectorAll(".title-char");
-    const desc = target.querySelector(".feature-description");
-
-    const depth = -target.offsetWidth / 12;
-    const tOrigin = `50% 50% ${depth}px`;
-
-    const tl = gsap.timeline();
-
-    // Description rolls DOWN and away
-    tl.to(desc, {
-      rotationX: -90,
-      y: "50%",
-      opacity: 0,
-      duration: 0.4,
-      ease: "power2.in",
-      transformOrigin: tOrigin,
-    });
-
-    // Title rolls back DOWN into view
-    tl.to(titleChars, {
-      rotationX: 0,
-      y: "0%",
-      opacity: 1,
-      stagger: 0.02,
-      duration: 0.5,
-      ease: "back.out(1.7)",
-      transformOrigin: tOrigin,
-    }, "-=0.2");
-  };
-
   return (
-    <div ref={containerRef} className="features-container w-full">
+    <div ref={containerRef} className="features-container w-full py-20 px-10">
       <p className="text-[12px] lg:text-[14px] font-bold tracking-[0.3em] text-[#a3925d] uppercase mb-[2vh]">
         Excellence Defined
       </p>
@@ -119,25 +160,20 @@ export default function WhyGoldenFocusFeatures() {
         {features.map((item, i) => (
           <div 
             key={i} 
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            className="feature-row group relative h-[13vh] border-b border-white/20 overflow-hidden cursor-pointer"
-            style={{ perspective: "1000px", transformStyle: "preserve-3d" }}
+            className="feature-row group relative h-[13vh] border-b border-white/20 overflow-hidden"
+            style={{ perspective: "1000px" }}
           >
-            {/* 1. TITLE (Split into spans for char animation) */}
-            <div className="feature-title absolute inset-0 flex items-center pointer-events-none">
+            <div className="feature-title absolute inset-0 flex items-center pointer-events-none" style={{ transformStyle: "preserve-3d" }}>
               <h4 className="text-[24px] lg:text-[3rem] font-bold leading-none tracking-tighter text-white">
-                {item.title.split("").map((char, index) => (
-                  <span key={index} className="title-char inline-block" style={{ whiteSpace: "pre" }}>
-                    {char}
-                  </span>
-                ))}
+                {item.title}
               </h4>
             </div>
 
-            {/* 2. DESCRIPTION */}
-            <div className="feature-description absolute inset-0 flex items-center opacity-0 pointer-events-none">
-              <p className="text-[14px] lg:text-[1.2rem] text-[#a3925d] font-medium max-w-[80%] italic uppercase tracking-wider">
+            <div 
+              className="feature-description absolute inset-0 flex items-center pointer-events-none"
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              <p className="text-[14px] lg:text-[1.8rem] text-[#a3925d] font-medium max-w-[90%] leading-tight italic">
                 {item.desc}
               </p>
             </div>

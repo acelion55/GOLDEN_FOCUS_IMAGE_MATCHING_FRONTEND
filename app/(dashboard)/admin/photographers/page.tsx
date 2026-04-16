@@ -1,164 +1,354 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { apiFetch } from "@/lib/auth-context";
-import { Button } from "@/components/ui/button";
 
 interface Photographer {
   _id: string;
   name: string;
   email: string;
   businessName?: string;
-  phone?: string;
   status: "pending" | "approved" | "suspended";
-  uniqueLink: string;
   createdAt: string;
-  stats: { photoCount: number; visitCount: number; downloadCount: number };
-  eventCount?: number;
+  stats: {
+    eventCount: number;
+    photoCount: number;
+    visitCount: number;
+    downloadCount: number;
+  };
 }
 
-export default function PhotographersPage() {
-  const searchParams = useSearchParams();
+export default function AdminPhotographersPage() {
   const [photographers, setPhotographers] = useState<Photographer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState(searchParams.get("status") || "");
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [filter, setFilter] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const fetchPhotographers = useCallback(async (status: string) => {
-    setIsLoading(true);
-    const url = status ? `/api/admin/photographers?status=${status}` : "/api/admin/photographers";
-    const res = await apiFetch(url);
-    const data = await res.json();
-    setPhotographers(data.photographers ?? []);
-    setIsLoading(false);
+  // Mock data
+  useEffect(() => {
+    setTimeout(() => {
+      setPhotographers([
+        {
+          _id: "1",
+          name: "Sarah Johnson",
+          email: "sarah@example.com",
+          businessName: "Sarah's Photography",
+          status: "pending",
+          createdAt: "2024-01-15",
+          stats: { eventCount: 0, photoCount: 0, visitCount: 0, downloadCount: 0 }
+        },
+        {
+          _id: "2",
+          name: "Mike Chen",
+          email: "mike@example.com",
+          businessName: "Chen Studios",
+          status: "approved",
+          createdAt: "2024-01-10",
+          stats: { eventCount: 15, photoCount: 2341, visitCount: 1987, downloadCount: 1432 }
+        },
+        {
+          _id: "3",
+          name: "Emily Davis",
+          email: "emily@example.com",
+          status: "approved",
+          createdAt: "2024-01-08",
+          stats: { eventCount: 23, photoCount: 3456, visitCount: 2876, downloadCount: 2134 }
+        },
+        {
+          _id: "4",
+          name: "Alex Rodriguez",
+          email: "alex@example.com",
+          businessName: "Rodriguez Photography",
+          status: "suspended",
+          createdAt: "2024-01-05",
+          stats: { eventCount: 8, photoCount: 987, visitCount: 543, downloadCount: 234 }
+        },
+        {
+          _id: "5",
+          name: "Lisa Wang",
+          email: "lisa@example.com",
+          businessName: "Wang Photography",
+          status: "approved",
+          createdAt: "2024-01-03",
+          stats: { eventCount: 31, photoCount: 4567, visitCount: 3421, downloadCount: 2987 }
+        }
+      ]);
+      setIsLoading(false);
+    }, 1000);
   }, []);
 
-  useEffect(() => { fetchPhotographers(filter); }, [filter, fetchPhotographers]);
+  const filteredPhotographers = photographers.filter(photographer => {
+    const matchesFilter = filter === "all" || photographer.status === filter;
+    const matchesSearch = photographer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         photographer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (photographer.businessName?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+    return matchesFilter && matchesSearch;
+  });
 
-  const updateStatus = async (id: string, status: string) => {
-    setActionLoading(id);
-    await apiFetch(`/api/admin/photographers/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
-    setActionLoading(null);
-    fetchPhotographers(filter);
+  const handleStatusChange = (photographerId: string, newStatus: "approved" | "suspended") => {
+    setPhotographers(prev => 
+      prev.map(p => p._id === photographerId ? { ...p, status: newStatus } : p)
+    );
   };
 
-  const deletePhotographer = async (id: string) => {
-    if (!confirm("Delete this photographer and ALL their data?")) return;
-    setActionLoading(id);
-    await apiFetch(`/api/admin/photographers/${id}`, { method: "DELETE" });
-    setActionLoading(null);
-    fetchPhotographers(filter);
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#a3925d] mx-auto mb-4"></div>
+          <p className="text-white/60 text-lg">Loading photographers...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="font-pixel text-2xl text-yellow-400">Photographers</h1>
-
-      {/* Filter Tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {["", "pending", "approved", "suspended"].map((s) => (
-          <button key={s || "all"}
-            onClick={() => setFilter(s)}
-            className={`px-4 py-1.5 text-sm rounded-full border transition-colors ${filter === s ? "bg-yellow-400 text-black border-yellow-400" : "border-white/20 text-white/50 hover:text-white hover:border-white/40"}`}>
-            {s || "All"}
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
+      {/* Mobile Header */}
+      <div className="lg:hidden bg-[#1a1a1a] border-b border-white/10 p-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-[#a3925d]">Photographers</h1>
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 text-white/60 hover:text-white"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
           </button>
-        ))}
+        </div>
       </div>
 
-      {isLoading ? (
-        <div className="text-white/40 py-8 text-center">Loading...</div>
-      ) : photographers.length === 0 ? (
-        <div className="border border-white/10 bg-black/80 rounded-xl p-8 text-center">
-          <p className="text-white/30">No photographers found</p>
+      <div className="flex">
+        {/* Sidebar */}
+        <div className={`${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[#1a1a1a] border-r border-white/10 transition-transform duration-300 ease-in-out`}>
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-[#a3925d] mb-8 hidden lg:block">Admin Panel</h2>
+            
+            <nav className="space-y-2">
+              <Link href="/admin" className="flex items-center gap-3 px-4 py-3 text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                </svg>
+                Dashboard
+              </Link>
+              
+              <Link href="/admin/photographers" className="flex items-center gap-3 px-4 py-3 text-white bg-[#a3925d]/20 rounded-lg">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                </svg>
+                Photographers
+              </Link>
+              
+              <Link href="/admin/events" className="flex items-center gap-3 px-4 py-3 text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v16a2 2 0 002 2z" />
+                </svg>
+                Events
+              </Link>
+              
+              <Link href="/admin/photos" className="flex items-center gap-3 px-4 py-3 text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2v16a2 2 0 002 2z" />
+                </svg>
+                Photos
+              </Link>
+            </nav>
+          </div>
         </div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {photographers.map((p) => (
-            <div key={p._id} className="border border-white/10 bg-black/80 rounded-xl p-5">
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                {/* Info */}
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-3">
-                    <p className="text-white font-medium">{p.name}</p>
-                    <StatusBadge status={p.status} />
-                  </div>
-                  <p className="text-white/40 text-sm">{p.email}</p>
-                  {p.businessName && <p className="text-white/30 text-xs">{p.businessName}</p>}
-                  {p.phone && <p className="text-white/30 text-xs">📞 {p.phone}</p>}
-                  <p className="text-white/20 text-xs mt-1">Joined {new Date(p.createdAt).toLocaleDateString()}</p>
-                </div>
 
-                {/* Stats */}
-                <div className="flex gap-6 text-center">
-                  <div>
-                    <p className="text-yellow-400 font-pixel text-lg">{p.eventCount ?? 0}</p>
-                    <p className="text-white/30 text-xs">Events</p>
-                  </div>
-                  <div>
-                    <p className="text-yellow-400 font-pixel text-lg">{p.stats.photoCount}</p>
-                    <p className="text-white/30 text-xs">Photos</p>
-                  </div>
-                  <div>
-                    <p className="text-yellow-400 font-pixel text-lg">{p.stats.visitCount}</p>
-                    <p className="text-white/30 text-xs">Visits</p>
-                  </div>
-                  <div>
-                    <p className="text-yellow-400 font-pixel text-lg">{p.stats.downloadCount}</p>
-                    <p className="text-white/30 text-xs">Downloads</p>
-                  </div>
-                </div>
-              </div>
+        {/* Mobile Overlay */}
+        {isMobileMenuOpen && (
+          <div 
+            className="lg:hidden fixed inset-0 bg-black/50 z-40"
+            onClick={() => setIsMobileMenuOpen(false)}
+          ></div>
+        )}
 
-              {/* Actions */}
-              <div className="flex gap-2 mt-4 flex-wrap">
-                {p.status === "pending" && (
-                  <button onClick={() => updateStatus(p._id, "approved")} disabled={actionLoading === p._id}
-                    className="px-3 py-1.5 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors disabled:opacity-50">
-                    ✓ Approve
-                  </button>
-                )}
-                {p.status === "approved" && (
-                  <button onClick={() => updateStatus(p._id, "suspended")} disabled={actionLoading === p._id}
-                    className="px-3 py-1.5 text-xs bg-yellow-400/10 text-yellow-400 border border-yellow-400/30 rounded hover:bg-yellow-400/20 transition-colors disabled:opacity-50">
-                    Suspend
-                  </button>
-                )}
-                {p.status === "suspended" && (
-                  <button onClick={() => updateStatus(p._id, "approved")} disabled={actionLoading === p._id}
-                    className="px-3 py-1.5 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors disabled:opacity-50">
-                    Reactivate
-                  </button>
-                )}
-                <Link href={`/admin/photographers/${p._id}`}>
-                  <button className="px-3 py-1.5 text-xs bg-white/5 text-white/60 border border-white/10 rounded hover:bg-white/10 transition-colors">
-                    View Details
-                  </button>
-                </Link>
-                <Link href={`/admin/events?photographer=${p._id}`}>
-                  <button className="px-3 py-1.5 text-xs bg-white/5 text-white/60 border border-white/10 rounded hover:bg-white/10 transition-colors">
-                    View Events
-                  </button>
-                </Link>
-                <button onClick={() => deletePhotographer(p._id)} disabled={actionLoading === p._id}
-                  className="px-3 py-1.5 text-xs bg-red-500/10 text-red-400 border border-red-500/20 rounded hover:bg-red-500/20 transition-colors disabled:opacity-50">
-                  Delete
-                </button>
+        {/* Main Content */}
+        <div className="flex-1 p-4 lg:p-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="mb-8 hidden lg:block">
+              <h1 className="text-3xl font-bold text-white mb-2">Photographers Management</h1>
+              <p className="text-white/60">Manage photographer accounts and approvals</p>
+            </div>
+
+            {/* Filters and Search */}
+            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6 mb-8">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    placeholder="Search photographers..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-4 py-3 bg-[#0a0a0a] border border-white/10 rounded-lg text-white placeholder-white/40 focus:border-[#a3925d] focus:outline-none"
+                  />
+                </div>
+                <div className="flex gap-2 overflow-x-auto">
+                  {["all", "pending", "approved", "suspended"].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setFilter(status)}
+                      className={`px-4 py-3 rounded-lg font-medium whitespace-nowrap transition-colors ${
+                        filter === status
+                          ? "bg-[#a3925d] text-white"
+                          : "bg-[#0a0a0a] text-white/60 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          ))}
+
+            {/* Photographers List */}
+            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
+              {/* Desktop Table Header */}
+              <div className="hidden lg:grid lg:grid-cols-12 gap-4 p-6 border-b border-white/10 bg-[#0a0a0a]">
+                <div className="col-span-3 text-white/60 text-sm font-medium">Photographer</div>
+                <div className="col-span-2 text-white/60 text-sm font-medium">Status</div>
+                <div className="col-span-2 text-white/60 text-sm font-medium">Events</div>
+                <div className="col-span-2 text-white/60 text-sm font-medium">Photos</div>
+                <div className="col-span-2 text-white/60 text-sm font-medium">Joined</div>
+                <div className="col-span-1 text-white/60 text-sm font-medium">Actions</div>
+              </div>
+
+              {/* Photographers */}
+              <div className="divide-y divide-white/10">
+                {filteredPhotographers.map((photographer) => (
+                  <div key={photographer._id} className="p-6">
+                    {/* Mobile Layout */}
+                    <div className="lg:hidden space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="text-white font-medium">{photographer.name}</h3>
+                          <p className="text-white/60 text-sm">{photographer.email}</p>
+                          {photographer.businessName && (
+                            <p className="text-white/40 text-xs">{photographer.businessName}</p>
+                          )}
+                        </div>
+                        <StatusBadge status={photographer.status} />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-white/60">Events: </span>
+                          <span className="text-white">{photographer.stats.eventCount}</span>
+                        </div>
+                        <div>
+                          <span className="text-white/60">Photos: </span>
+                          <span className="text-white">{photographer.stats.photoCount.toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="text-white/60">Visits: </span>
+                          <span className="text-white">{photographer.stats.visitCount.toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="text-white/60">Joined: </span>
+                          <span className="text-white">{new Date(photographer.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      
+                      {photographer.status === "pending" && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleStatusChange(photographer._id, "approved")}
+                            className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(photographer._id, "suspended")}
+                            className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Desktop Layout */}
+                    <div className="hidden lg:grid lg:grid-cols-12 gap-4 items-center">
+                      <div className="col-span-3">
+                        <h3 className="text-white font-medium">{photographer.name}</h3>
+                        <p className="text-white/60 text-sm">{photographer.email}</p>
+                        {photographer.businessName && (
+                          <p className="text-white/40 text-xs">{photographer.businessName}</p>
+                        )}
+                      </div>
+                      
+                      <div className="col-span-2">
+                        <StatusBadge status={photographer.status} />
+                      </div>
+                      
+                      <div className="col-span-2">
+                        <span className="text-white">{photographer.stats.eventCount}</span>
+                      </div>
+                      
+                      <div className="col-span-2">
+                        <span className="text-white">{photographer.stats.photoCount.toLocaleString()}</span>
+                      </div>
+                      
+                      <div className="col-span-2">
+                        <span className="text-white/60 text-sm">
+                          {new Date(photographer.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      
+                      <div className="col-span-1">
+                        {photographer.status === "pending" && (
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => handleStatusChange(photographer._id, "approved")}
+                              className="p-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                              title="Approve"
+                            >
+                              ✓
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(photographer._id, "suspended")}
+                              className="p-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                              title="Reject"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {filteredPhotographers.length === 0 && (
+                <div className="p-12 text-center">
+                  <div className="text-6xl mb-4">👥</div>
+                  <p className="text-white/60 mb-2">No photographers found</p>
+                  <p className="text-white/40 text-sm">Try adjusting your search or filter criteria</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    pending: "bg-yellow-400/20 text-yellow-400",
-    approved: "bg-green-500/20 text-green-400",
-    suspended: "bg-red-500/20 text-red-400",
+  const styles = {
+    pending: "bg-yellow-400/20 text-yellow-400 border-yellow-400/30",
+    approved: "bg-green-400/20 text-green-400 border-green-400/30",
+    suspended: "bg-red-400/20 text-red-400 border-red-400/30",
   };
-  return <span className={`px-2 py-0.5 text-xs rounded ${colors[status] || colors.pending}`}>{status}</span>;
+  
+  return (
+    <span className={`px-3 py-1 text-xs rounded-full border font-medium ${styles[status as keyof typeof styles] || styles.pending}`}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+  );
 }

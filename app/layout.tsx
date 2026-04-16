@@ -25,6 +25,9 @@ export const metadata: Metadata = {
   title: "GoldenFocus AI",
   description:
     "AI-powered face recognition photo matching for photographers. Upload event photos, let customers find themselves instantly.",
+  verification: {
+    google: "M3G7DutCabpv_Z7J0SU969bNVe3zw2tOuTuw-0UH9gM",
+  },
   openGraph: {
     title: "GoldenFocus AI",
     description:

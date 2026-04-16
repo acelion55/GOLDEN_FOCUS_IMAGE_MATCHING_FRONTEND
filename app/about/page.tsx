@@ -1,120 +1,232 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useRef, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
-const values = [
-  { icon: "🎯", title: "Accuracy First", desc: "Our AI is trained on millions of faces to deliver precise matches even in large crowds." },
-  { icon: "🔒", title: "Privacy by Design", desc: "Face data is never stored permanently. We process and discard — your clients stay safe." },
-  { icon: "⚡", title: "Speed Matters", desc: "From upload to delivery in minutes. We built for photographers who value their time." },
-  { icon: "🤝", title: "Photographer-First", desc: "Every feature is built based on real feedback from working photographers." },
+const teamMembers = [
+  {
+    name: "Sarah Johnson",
+    role: "Founder & CEO",
+    image: "/01.jpg",
+    bio: "Former Google AI researcher with 10+ years in computer vision and machine learning."
+  },
+  {
+    name: "Michael Chen",
+    role: "CTO",
+    image: "/02.jpg", 
+    bio: "Ex-Facebook engineer specializing in large-scale image processing and facial recognition."
+  },
+  {
+    name: "Emily Rodriguez",
+    role: "Head of Design",
+    image: "/03.jpg",
+    bio: "Award-winning UX designer with expertise in creating intuitive photography workflows."
+  }
 ];
 
-const team = [
-  { name: "Harshvardhan", role: "Founder & CEO", emoji: "👨‍💻" },
-  { name: "AI Team", role: "Face Recognition", emoji: "🤖" },
-  { name: "Design Team", role: "UX & Product", emoji: "🎨" },
+const values = [
+  {
+    icon: "🎯",
+    title: "Innovation First",
+    description: "We push the boundaries of what's possible with AI and photography technology."
+  },
+  {
+    icon: "🤝",
+    title: "Client Success",
+    description: "Your success is our success. We're committed to helping photographers thrive."
+  },
+  {
+    icon: "🔒",
+    title: "Privacy & Security",
+    description: "We protect your photos and data with bank-grade security and encryption."
+  },
+  {
+    icon: "⚡",
+    title: "Speed & Efficiency",
+    description: "Time is precious. We help you deliver results faster than ever before."
+  }
 ];
 
 function AnimatedSection({ children, className }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
+  
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    
     gsap.fromTo(el.querySelectorAll("[data-anim]"),
-      { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, duration: 0.7, stagger: 0.1, ease: "power2.out",
-        scrollTrigger: { trigger: el, start: "top 80%", once: true } }
+      { opacity: 0, y: 60, scale: 0.95 },
+      {
+        opacity: 1, 
+        y: 0, 
+        scale: 1,
+        duration: 0.8, 
+        stagger: 0.15, 
+        ease: "power3.out",
+        scrollTrigger: { 
+          trigger: el, 
+          start: "top 80%", 
+          once: true 
+        },
+      }
     );
   }, []);
+  
   return <div ref={ref} className={className}>{children}</div>;
 }
 
 export default function AboutPage() {
-  return (
-    <div className="min-h-screen bg-black/80 text-white pt-[10vh]">
+  const heroRef = useRef<HTMLDivElement>(null);
 
-      {/* STAGE 1 — Hero */}
-      <section className="sticky top-[10vh] z-0 h-[90vh] flex flex-col items-center justify-center text-center px-6 bg-black/90 border-b border-white/10">
-        <p className="font-pixel text-yellow-400 text-xs tracking-widest uppercase mb-4">Our Story</p>
-        <h1 className="font-pixel text-5xl sm:text-7xl text-white leading-tight mb-6">
-          BUILT FOR<br /><span className="text-yellow-400">PHOTOGRAPHERS</span>
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline();
+      
+      tl.from(".hero-badge", {
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out"
+      })
+      .from(".hero-title", {
+        y: 50,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out"
+      }, "-=0.6")
+      .from(".hero-subtitle", {
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out"
+      }, "-=0.4");
+
+    }, heroRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-white text-[#1a1a1a] pt-[10vh]">
+
+      {/* Hero Section */}
+      <section ref={heroRef} className="min-h-[80vh] flex flex-col items-center justify-center text-center px-[5vw] bg-white">
+        <p className="hero-badge text-[12px] lg:text-[14px] font-bold tracking-[0.3em] text-[#a3925d] uppercase mb-[2vh]">
+          About Us
+        </p>
+        <h1 className="hero-title text-[48px] sm:text-[64px] lg:text-[80px] font-serif text-[#1a1a1a] leading-tight mb-[3vh]">
+          Revolutionizing
+          <br />
+          <span className="text-[#a3925d]">Photography</span>
         </h1>
-        <p className="text-white/60 text-lg max-w-2xl">
-          GoldenFocus AI was born from a simple frustration — photographers spending days sorting and sending photos after every event. We built the solution.
+        <p className="hero-subtitle text-[16px] lg:text-[20px] text-[#666666] max-w-[700px] leading-relaxed">
+          We're on a mission to transform how photographers share their work and how people discover their memories through cutting-edge AI technology.
         </p>
       </section>
 
-      {/* STAGE 2 — Mission */}
-      <section className="relative z-10 bg-black/95 border-b border-white/10 px-6 py-24">
-        <AnimatedSection className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 data-anim className="font-pixel text-2xl text-yellow-400 mb-6">Our Mission</h2>
-              <p data-anim className="text-white/70 text-lg leading-relaxed mb-4">
-                We believe photographers should spend their time behind the lens — not behind a computer sorting thousands of photos.
-              </p>
-              <p data-anim className="text-white/50 leading-relaxed">
-                GoldenFocus AI automates the entire photo delivery process using face recognition. Upload once, share a link, and let your clients find themselves instantly.
-              </p>
-            </div>
-            <div data-anim className="border border-white/10 bg-white/5 p-8 rounded-xl text-center">
-              <p className="font-pixel text-yellow-400 text-5xl mb-2">10x</p>
-              <p className="text-white/60">Faster photo delivery</p>
-              <div className="border-t border-white/10 my-6" />
-              <p className="font-pixel text-yellow-400 text-5xl mb-2">100%</p>
-              <p className="text-white/60">Automated face matching</p>
-            </div>
-          </div>
-        </AnimatedSection>
-      </section>
-
-      {/* STAGE 3 — Values (sticky) */}
-      <section className="sticky top-[10vh] z-10 bg-black/90 border-b border-white/10 px-6 py-24">
-        <AnimatedSection className="max-w-5xl mx-auto">
-          <h2 data-anim className="font-pixel text-2xl text-yellow-400 text-center mb-16">Our Values</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {values.map((v) => (
-              <div data-anim key={v.title} className="flex gap-4 p-6 border border-white/10 bg-white/5 rounded-xl">
-                <span className="text-3xl shrink-0">{v.icon}</span>
-                <div>
-                  <h3 className="font-pixel text-sm text-white mb-2">{v.title}</h3>
-                  <p className="text-white/50 text-sm">{v.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </AnimatedSection>
-      </section>
-
-      {/* STAGE 4 — Team */}
-      <section className="relative z-20 bg-black/95 border-b border-white/10 px-6 py-24">
-        <AnimatedSection className="max-w-4xl mx-auto text-center">
-          <h2 data-anim className="font-pixel text-2xl text-yellow-400 mb-16">The Team</h2>
-          <div className="flex flex-wrap justify-center gap-8">
-            {team.map((t) => (
-              <div data-anim key={t.name} className="border border-white/10 bg-white/5 p-8 rounded-xl w-48 flex flex-col items-center gap-3">
-                <span className="text-5xl">{t.emoji}</span>
-                <p className="font-pixel text-sm text-white">{t.name}</p>
-                <p className="text-white/40 text-xs">{t.role}</p>
-              </div>
-            ))}
-          </div>
-        </AnimatedSection>
-      </section>
-
-      {/* STAGE 5 — CTA */}
-      <section className="relative z-20 bg-black/95 px-6 py-32 flex flex-col items-center text-center">
+      {/* Story Section */}
+      <section className="bg-gray-50 px-[5vw] py-[15vh]">
         <AnimatedSection>
-          <h2 data-anim className="font-pixel text-3xl text-white mb-4">Join the Movement</h2>
-          <p data-anim className="text-white/60 mb-8 max-w-md">Be part of the future of photography delivery.</p>
-          <Link data-anim href="/#signup" className="px-10 py-3 bg-yellow-400 text-black font-pixel text-sm hover:bg-yellow-300 transition-colors">
-            Get Started Free
-          </Link>
+          <div className="w-full max-w-[1200px] mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-[8vw] items-center">
+              <div>
+                <p data-anim className="text-[12px] lg:text-[14px] font-bold tracking-[0.3em] text-[#a3925d] uppercase mb-[2vh]">
+                  Our Story
+                </p>
+                <h2 data-anim className="text-[36px] lg:text-[48px] font-serif text-[#1a1a1a] leading-tight mb-[3vh]">
+                  Born from Frustration
+                </h2>
+                <p data-anim className="text-[16px] lg:text-[18px] text-[#666666] leading-relaxed mb-[3vh]">
+                  As photographers ourselves, we experienced the pain of spending countless hours sorting through thousands of photos, manually tagging faces, and sending individual galleries to clients.
+                </p>
+                <p data-anim className="text-[16px] lg:text-[18px] text-[#666666] leading-relaxed">
+                  We knew there had to be a better way. That's when we decided to build GoldenFocus AI - a platform that uses advanced facial recognition to automate the entire process, giving photographers their time back and delighting clients with instant results.
+                </p>
+              </div>
+              <div data-anim className="aspect-[4/3] bg-gray-200 overflow-hidden">
+                <img src="/savehour.jpg" alt="Our Story" className="w-full h-full object-cover" />
+              </div>
+            </div>
+          </div>
+        </AnimatedSection>
+      </section>
+
+      {/* Values Section */}
+      <section className="bg-white px-[5vw] py-[15vh]">
+        <AnimatedSection>
+          <div className="w-full max-w-[1400px] mx-auto">
+            <div className="text-center mb-[10vh]">
+              <p data-anim className="text-[12px] lg:text-[14px] font-bold tracking-[0.3em] text-[#a3925d] uppercase mb-[2vh]">
+                Our Values
+              </p>
+              <h2 data-anim className="text-[36px] lg:text-[48px] font-serif text-[#1a1a1a] leading-tight">
+                What Drives Us
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[4vw]">
+              {values.map((value, index) => (
+                <div data-anim key={index} className="text-center">
+                  <div className="text-[64px] mb-[3vh]">{value.icon}</div>
+                  <h3 className="text-[20px] lg:text-[24px] font-bold text-[#1a1a1a] mb-[2vh]">{value.title}</h3>
+                  <p className="text-[14px] lg:text-[16px] text-[#666666] leading-relaxed">{value.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </AnimatedSection>
+      </section>
+
+      {/* Team Section */}
+      <section className="bg-gray-50 px-[5vw] py-[15vh]">
+        <AnimatedSection>
+          <div className="w-full max-w-[1400px] mx-auto">
+            <div className="text-center mb-[10vh]">
+              <p data-anim className="text-[12px] lg:text-[14px] font-bold tracking-[0.3em] text-[#a3925d] uppercase mb-[2vh]">
+                Meet The Team
+              </p>
+              <h2 data-anim className="text-[36px] lg:text-[48px] font-serif text-[#1a1a1a] leading-tight">
+                The People Behind GoldenFocus
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-[6vw]">
+              {teamMembers.map((member, index) => (
+                <div data-anim key={index} className="text-center bg-white p-[3vw] hover:shadow-lg transition-shadow duration-300">
+                  <div className="aspect-square bg-gray-200 mb-[3vh] overflow-hidden">
+                    <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                  </div>
+                  <h3 className="text-[20px] lg:text-[24px] font-bold text-[#1a1a1a] mb-[1vh]">{member.name}</h3>
+                  <p className="text-[14px] lg:text-[16px] text-[#a3925d] font-medium mb-[2vh]">{member.role}</p>
+                  <p className="text-[14px] lg:text-[16px] text-[#666666] leading-relaxed">{member.bio}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </AnimatedSection>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-[#1a1a1a] text-white px-[5vw] py-[15vh]">
+        <AnimatedSection>
+          <div className="w-full max-w-[800px] mx-auto text-center">
+            <h2 data-anim className="text-[36px] lg:text-[48px] font-serif mb-[3vh]">
+              Ready to Join Us?
+            </h2>
+            <p data-anim className="text-[16px] lg:text-[18px] text-white/80 mb-[5vh] leading-relaxed">
+              Be part of the photography revolution. Start using GoldenFocus AI today.
+            </p>
+            <button data-anim className="px-[4vw] py-[2.5vh] bg-[#a3925d] text-white text-[16px] lg:text-[18px] font-medium hover:bg-[#b8a76b] transition-colors duration-300">
+              Get Started Now
+            </button>
+          </div>
         </AnimatedSection>
       </section>
     </div>

@@ -39,7 +39,7 @@ function PinInput({ value, onChange, disabled }: { value: string; onChange: (v: 
           onChange={(e) => handleChange(i, e)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           disabled={disabled}
-          className="w-12 h-12 md:w-14 md:h-14 text-center text-2xl font-bold rounded-xl border-2 border-white/20 bg-white/10 text-white focus:border-yellow-400 focus:outline-none focus:bg-white/20 transition-all caret-transparent"
+          className="w-12 h-12 md:w-14 md:h-14 text-center text-2xl font-bold rounded-xl border-2 border-white/20 bg-white/10 text-white focus:border-yellow-400 focus:outline-none focus:bg-white/20 transition-all caret-transparent relative z-[10000]"
         />
       ))}
     </div>
@@ -162,20 +162,20 @@ export default function HeroPanel() {
     <div className={`
       w-full md:w-[45%] lg:w-[35%] xl:w-[min(30%,32rem)] xl:min-w-[22rem] shrink-0 
       md:flex md:items-center md:justify-center md:pr-4 md:pt-4 md:pb-0 
-      absolute md:relative left-0 px-4 md:px-0 transition-all duration-500
+      absolute md:relative left-0 px-4 md:px-0 transition-all duration-500 z-[9999]
       ${mode === 'idle' ? 'top-[65%] md:top-0' : 'top-[25%] md:top-0'}`}>
 
-      <div ref={ctaRef} className="flex flex-col items-start gap-3 w-full max-w-md">
+      <div ref={ctaRef} className="flex flex-col items-start gap-3 w-full max-w-md relative z-[9999]">
         <p className="text-white/50 text-sm">Ready to grow your photography business?</p>
         <button
           onClick={() => switchMode("signup")}
-          className="px-8 py-4 bg-yellow-400 text-black font-pixel text-sm hover:bg-yellow-300 active:scale-95 transition-all"
+          className="px-8 py-4 bg-yellow-400 text-black font-pixel text-sm hover:bg-yellow-300 active:scale-95 transition-all relative z-[9999]"
         >
           Join as Photographer →
         </button>
       </div>
 
-      <div ref={formRef} style={{ display: "none" }} className="flex-col w-full max-w-md gap-1">
+      <div ref={formRef} style={{ display: "none" }} className="flex-col w-full max-w-md gap-1 relative z-[9999] bg-black/95 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-pixel text-lg text-white">
             {isAdmin ? "Admin Login" : mode === "login" ? "Welcome Back" : "Create Account"}
@@ -183,7 +183,7 @@ export default function HeroPanel() {
           {!isAdmin && (
             <button
               onClick={() => switchMode("idle")}
-              className="text-white/30 hover:text-white/70 text-xl transition-colors leading-none"
+              className="text-white/30 hover:text-white/70 text-xl transition-colors leading-none relative z-[10000] p-2 -m-2"
               aria-label="Close"
             >
               ✕
@@ -198,44 +198,119 @@ export default function HeroPanel() {
         )}
 
         {isAdmin && (
-          <form onSubmit={handleAdminLogin} className="flex flex-col gap-4" noValidate>
-            <FloatingLabelInput id="admin-email" label="Email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
-            <input type="password" placeholder="4-Digit PIN *" value={password} maxLength={4}
-              onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 4))} required disabled={isLoading}
-              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/30 focus:border-yellow-400 focus:outline-none" />
-            <Button type="submit" disabled={isLoading} className="w-full mt-1 font-pixel text-xs uppercase">
+          <form onSubmit={handleAdminLogin} className="flex flex-col gap-4 relative z-[10000]" noValidate>
+            <div className="relative z-[10000]">
+              <FloatingLabelInput 
+                id="admin-email" 
+                label="Email" 
+                type="email" 
+                autoComplete="username" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                required 
+                disabled={isLoading} 
+              />
+            </div>
+            <input 
+              type="password" 
+              placeholder="4-Digit PIN *" 
+              value={password} 
+              maxLength={4}
+              onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 4))} 
+              required 
+              disabled={isLoading}
+              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/30 focus:border-yellow-400 focus:outline-none relative z-[10000]" 
+            />
+            <Button type="submit" disabled={isLoading} className="w-full mt-1 font-pixel text-xs uppercase relative z-[10000]">
               {isLoading ? "Please wait…" : "Login"}
             </Button>
           </form>
         )}
 
         {!isAdmin && mode === "signup" && (
-          <form onSubmit={handleSignup} className="flex flex-col gap-4" noValidate>
-            <FloatingLabelInput id="s-name" label="Full name" type="text" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading} />
-            <FloatingLabelInput id="s-business" label="Business name (optional)" type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)} disabled={isLoading} />
-            <FloatingLabelInput id="s-email" label="Email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
-            <FloatingLabelInput id="s-phone" label="Phone number" type="tel" inputMode="numeric" maxLength={10} autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} disabled={isLoading} />
-            <PinInput value={password} onChange={setPassword} disabled={isLoading} />
-            <Button type="submit" disabled={isLoading} className="w-full mt-1 font-pixel text-xs uppercase">
+          <form onSubmit={handleSignup} className="flex flex-col gap-4 relative z-[10000]" noValidate>
+            <div className="relative z-[10000]">
+              <FloatingLabelInput 
+                id="s-name" 
+                label="Full name" 
+                type="text" 
+                autoComplete="name" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                disabled={isLoading} 
+              />
+            </div>
+            <div className="relative z-[10000]">
+              <FloatingLabelInput 
+                id="s-business" 
+                label="Business name (optional)" 
+                type="text" 
+                value={businessName} 
+                onChange={(e) => setBusinessName(e.target.value)} 
+                disabled={isLoading} 
+              />
+            </div>
+            <div className="relative z-[10000]">
+              <FloatingLabelInput 
+                id="s-email" 
+                label="Email" 
+                type="email" 
+                autoComplete="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                disabled={isLoading} 
+              />
+            </div>
+            <div className="relative z-[10000]">
+              <FloatingLabelInput 
+                id="s-phone" 
+                label="Phone number" 
+                type="tel" 
+                inputMode="numeric" 
+                maxLength={10} 
+                autoComplete="tel" 
+                value={phone} 
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} 
+                disabled={isLoading} 
+              />
+            </div>
+            <div className="relative z-[10000]">
+              <PinInput value={password} onChange={setPassword} disabled={isLoading} />
+            </div>
+            <Button type="submit" disabled={isLoading} className="w-full mt-1 font-pixel text-xs uppercase relative z-[10000]">
               {isLoading ? "Please wait…" : "Create Account"}
             </Button>
             <p className="text-center text-sm text-white/50">
               Already have an account?{" "}
-              <button type="button" onClick={() => switchMode("login")} className="text-yellow-400 hover:underline font-medium">Log in</button>
+              <button type="button" onClick={() => switchMode("login")} className="text-yellow-400 hover:underline font-medium relative z-[10000]">Log in</button>
             </p>
           </form>
         )}
 
         {!isAdmin && mode === "login" && (
-          <form onSubmit={handleLogin} className="flex flex-col gap-4" noValidate>
-            <FloatingLabelInput id="l-phone" label="Phone number" type="tel" inputMode="numeric" maxLength={10} autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} disabled={isLoading} />
-            <PinInput value={password} onChange={setPassword} disabled={isLoading} />
-            <Button type="submit" disabled={isLoading} className="w-full mt-1 font-pixel text-xs uppercase">
+          <form onSubmit={handleLogin} className="flex flex-col gap-4 relative z-[10000]" noValidate>
+            <div className="relative z-[10000]">
+              <FloatingLabelInput 
+                id="l-phone" 
+                label="Phone number" 
+                type="tel" 
+                inputMode="numeric" 
+                maxLength={10} 
+                autoComplete="tel" 
+                value={phone} 
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} 
+                disabled={isLoading} 
+              />
+            </div>
+            <div className="relative z-[10000]">
+              <PinInput value={password} onChange={setPassword} disabled={isLoading} />
+            </div>
+            <Button type="submit" disabled={isLoading} className="w-full mt-1 font-pixel text-xs uppercase relative z-[10000]">
               {isLoading ? "Please wait…" : "Login"}
             </Button>
             <p className="text-center text-sm text-white/50">
               Don&apos;t have an account?{" "}
-              <button type="button" onClick={() => switchMode("signup")} className="text-yellow-400 hover:underline font-medium">Sign up</button>
+              <button type="button" onClick={() => switchMode("signup")} className="text-yellow-400 hover:underline font-medium relative z-[10000]">Sign up</button>
             </p>
           </form>
         )}

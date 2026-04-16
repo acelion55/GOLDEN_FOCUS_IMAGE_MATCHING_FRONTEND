@@ -5,7 +5,9 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const features = [
   { icon: "📸", title: "Bulk Photo Upload", desc: "Upload hundreds of event photos at once. Our system processes them automatically in the background." },
@@ -26,85 +28,168 @@ const steps = [
 
 function AnimatedSection({ children, className }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
+  
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    
     gsap.fromTo(el.querySelectorAll("[data-anim]"),
-      { opacity: 0, y: 40 },
+      { opacity: 0, y: 60, scale: 0.9 },
       {
-        opacity: 1, y: 0, duration: 0.7, stagger: 0.1, ease: "power2.out",
-        scrollTrigger: { trigger: el, start: "top 80%", once: true },
+        opacity: 1, 
+        y: 0, 
+        scale: 1,
+        duration: 0.8, 
+        stagger: 0.15, 
+        ease: "power3.out",
+        scrollTrigger: { 
+          trigger: el, 
+          start: "top 80%", 
+          once: true 
+        },
       }
     );
   }, []);
+  
   return <div ref={ref} className={className}>{children}</div>;
 }
 
 export default function PhotographerPage() {
-  return (
-    <div className="min-h-screen bg-black/80 text-white pt-[10vh]">
+  const heroRef = useRef<HTMLDivElement>(null);
 
-      {/* STAGE 1 — Hero (sticky) */}
-      <section className="sticky top-[10vh] z-0 h-[90vh] flex flex-col items-center justify-center text-center px-6 bg-black/90 border-b border-white/10">
-        <p data-anim className="font-pixel text-yellow-400 text-xs tracking-widest uppercase mb-4">For Photographers</p>
-        <h1 className="font-pixel text-4xl sm:text-6xl lg:text-8xl text-white leading-tight mb-6">
-          YOUR PHOTOS.<br /><span className="text-yellow-400">YOUR CLIENTS.</span><br />INSTANTLY.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const ctx = gsap.context(() => {
+      // Hero stage animation
+      const tl = gsap.timeline();
+      
+      tl.from(".hero-badge", {
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out"
+      })
+      .from(".hero-title", {
+        y: 50,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out"
+      }, "-=0.6")
+      .from(".hero-subtitle", {
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out"
+      }, "-=0.4")
+      .from(".hero-buttons", {
+        y: 20,
+        opacity: 0,
+        duration: 0.6,
+        ease: "power3.out"
+      }, "-=0.3");
+
+    }, heroRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-white text-[#1a1a1a] pt-[10vh]">
+
+      {/* STAGE 1 — Hero */}
+      <section ref={heroRef} className="min-h-[90vh] flex flex-col items-center justify-center text-center px-[5vw] bg-white">
+        <p className="hero-badge text-[12px] lg:text-[14px] font-bold tracking-[0.3em] text-[#a3925d] uppercase mb-[2vh]">
+          For Photographers
+        </p>
+        <h1 className="hero-title text-[48px] sm:text-[64px] lg:text-[80px] font-serif text-[#1a1a1a] leading-tight mb-[3vh]">
+          YOUR PHOTOS.<br />
+          <span className="text-[#a3925d]">YOUR CLIENTS.</span><br />
+          INSTANTLY.
         </h1>
-        <p className="text-white/60 text-lg max-w-xl mb-8">
+        <p className="hero-subtitle text-[16px] lg:text-[20px] text-[#666666] max-w-[600px] mb-[5vh] leading-relaxed">
           Stop spending hours sorting and sending photos. GoldenFocus AI does it all — automatically.
         </p>
-        <div className="flex gap-4 flex-wrap justify-center">
-        <Link href="/#signup" className="px-8 py-3 bg-yellow-400 text-black font-pixel text-sm hover:bg-yellow-300 transition-colors">
+        <div className="hero-buttons flex gap-[2vw] flex-wrap justify-center">
+          <Link href="/#signup" className="px-[3vw] py-[2vh] bg-[#1a1a1a] text-white text-[16px] lg:text-[18px] font-medium hover:bg-[#a3925d] transition-colors duration-300">
             Start Free
           </Link>
-          <Link href="/pricing" className="px-8 py-3 border border-yellow-400/40 text-white text-sm hover:border-yellow-400 hover:text-yellow-400 transition-colors">
+          <Link href="/pricing" className="px-[3vw] py-[2vh] border-2 border-[#1a1a1a] text-[#1a1a1a] text-[16px] lg:text-[18px] font-medium hover:bg-[#1a1a1a] hover:text-white transition-all duration-300">
             View Pricing
           </Link>
         </div>
       </section>
 
-      {/* STAGE 2 — Features (scrolls over hero) */}
-      <section className="relative z-10 bg-black/95 border-b border-white/10 px-6 py-24">
+      {/* STAGE 2 — Features */}
+      <section className="bg-gray-50 px-[5vw] py-[15vh]">
         <AnimatedSection>
-          <h2 data-anim className="font-pixel text-2xl text-yellow-400 text-center mb-16">Everything You Need</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {features.map((f) => (
-              <div data-anim key={f.title} className="border border-white/10 bg-white/5 backdrop-blur p-6 rounded-xl flex flex-col gap-3">
-                <span className="text-3xl">{f.icon}</span>
-                <h3 className="font-pixel text-sm text-white">{f.title}</h3>
-                <p className="text-white/50 text-sm">{f.desc}</p>
-              </div>
-            ))}
+          <div className="w-full max-w-[1400px] mx-auto">
+            <div className="text-center mb-[10vh]">
+              <p data-anim className="text-[12px] lg:text-[14px] font-bold tracking-[0.3em] text-[#a3925d] uppercase mb-[2vh]">
+                Everything You Need
+              </p>
+              <h2 data-anim className="text-[36px] lg:text-[48px] font-serif text-[#1a1a1a] leading-tight">
+                Powerful Features
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[4vw]">
+              {features.map((f) => (
+                <div data-anim key={f.title} className="bg-white p-[3vw] border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+                  <div className="text-[48px] mb-[2vh]">{f.icon}</div>
+                  <h3 className="text-[20px] lg:text-[24px] font-bold text-[#1a1a1a] mb-[1.5vh]">{f.title}</h3>
+                  <p className="text-[14px] lg:text-[16px] text-[#666666] leading-relaxed">{f.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </AnimatedSection>
       </section>
 
-      {/* STAGE 3 — How it works (sticky) */}
-      <section className="sticky top-[10vh] z-10 bg-black/90 border-b border-white/10 px-6 py-24">
+      {/* STAGE 3 — How it works */}
+      <section className="bg-white px-[5vw] py-[15vh]">
         <AnimatedSection>
-          <h2 data-anim className="font-pixel text-2xl text-yellow-400 text-center mb-16">How It Works</h2>
-          <div className="max-w-3xl mx-auto flex flex-col gap-6">
-            {steps.map((s) => (
-              <div data-anim key={s.n} className="flex gap-6 items-start border border-white/10 bg-white/5 p-6 rounded-xl">
-                <span className="font-pixel text-yellow-400 text-2xl shrink-0">{s.n}</span>
-                <div>
-                  <h3 className="font-pixel text-sm text-white mb-1">{s.title}</h3>
-                  <p className="text-white/50 text-sm">{s.desc}</p>
+          <div className="w-full max-w-[1000px] mx-auto">
+            <div className="text-center mb-[10vh]">
+              <p data-anim className="text-[12px] lg:text-[14px] font-bold tracking-[0.3em] text-[#a3925d] uppercase mb-[2vh]">
+                Simple Process
+              </p>
+              <h2 data-anim className="text-[36px] lg:text-[48px] font-serif text-[#1a1a1a] leading-tight">
+                How It Works
+              </h2>
+            </div>
+            
+            <div className="space-y-[4vh]">
+              {steps.map((s) => (
+                <div data-anim key={s.n} className="flex gap-[3vw] items-start bg-gray-50 p-[3vw] border-l-4 border-[#a3925d]">
+                  <div className="w-[60px] h-[60px] bg-[#a3925d] text-white text-[20px] font-bold flex items-center justify-center shrink-0">
+                    {s.n}
+                  </div>
+                  <div>
+                    <h3 className="text-[20px] lg:text-[24px] font-bold text-[#1a1a1a] mb-[1vh]">{s.title}</h3>
+                    <p className="text-[14px] lg:text-[16px] text-[#666666] leading-relaxed">{s.desc}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </AnimatedSection>
       </section>
 
       {/* STAGE 4 — CTA */}
-      <section className="relative z-20 bg-black/95 px-6 py-32 flex flex-col items-center text-center">
+      <section className="bg-[#1a1a1a] text-white px-[5vw] py-[15vh]">
         <AnimatedSection>
-          <h2 data-anim className="font-pixel text-3xl text-white mb-4">Ready to Get Started?</h2>
-          <p data-anim className="text-white/60 mb-8 max-w-md">Join photographers already using GoldenFocus AI to delight their clients.</p>
-          <Link data-anim href="/#signup" className="px-10 py-3 bg-yellow-400 text-black font-pixel text-sm hover:bg-yellow-300 transition-colors">
-            Create Free Account
-          </Link>
+          <div className="w-full max-w-[800px] mx-auto text-center">
+            <h2 data-anim className="text-[36px] lg:text-[48px] font-serif mb-[3vh]">
+              Ready to Get Started?
+            </h2>
+            <p data-anim className="text-[16px] lg:text-[18px] text-white/80 mb-[5vh] leading-relaxed">
+              Join photographers already using GoldenFocus AI to delight their clients.
+            </p>
+            <Link data-anim href="/#signup" className="inline-block px-[4vw] py-[2.5vh] bg-[#a3925d] text-white text-[16px] lg:text-[18px] font-medium hover:bg-[#b8a76b] transition-colors duration-300">
+              Create Free Account
+            </Link>
+          </div>
         </AnimatedSection>
       </section>
     </div>
