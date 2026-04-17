@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useLayoutEffect } from "react";
+import { useRef, useLayoutEffect, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import WhyGoldenFocusFeatures from "./WhyGoldenFocusFeatures";
@@ -27,6 +27,63 @@ export default function MethodologySection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const whySectionRef = useRef<HTMLDivElement>(null);
   const imagesContainerRef = useRef<HTMLDivElement>(null);
+  const methodGridRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile view
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Mobile scroll-triggered animation for vertical steps with sticky effect
+  useLayoutEffect(() => {
+    if (typeof window === "undefined" || !isMobile || !methodGridRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const cards = methodGridRef.current?.querySelectorAll(".method-card");
+      if (!cards) return;
+
+      cards.forEach((card: any, index: number) => {
+        // Set initial state: hidden
+        gsap.set(card, {
+          opacity: 0,
+          y: 50,
+        });
+
+        // Fade in animation when entering
+        ScrollTrigger.create({
+          trigger: card,
+          start: "top 80%",
+          onEnter: () => {
+            gsap.to(card, {
+              opacity: 1,
+              y: 0,
+              duration: 0.6,
+              ease: "power2.out",
+            });
+          },
+        });
+
+        // Pin each card to the top
+        ScrollTrigger.create({
+          trigger: card,
+          start: "top top",
+          end: "bottom top",
+          pin: true,
+          pinSpacing: false,
+          markers: false,
+        });
+      });
+    }, methodGridRef);
+
+    return () => ctx.revert();
+  }, [isMobile]);
 
   useLayoutEffect(() => {
     if (typeof window === "undefined") return;
@@ -62,21 +119,33 @@ export default function MethodologySection() {
   }, []);
 
   return (
-    <section ref={containerRef} className="w-full bg-white text-[#1a1a1a] relative">
+    <section ref={containerRef} className="w-full bg-white text-[#1a1a1a]">
 
-      {/* Methodology Section */}
-      <div className="w-full min-h-screen flex flex-col items-center pt-[8vh] pb-[10vh]">
-        <div className="w-full max-w-[1400px] px-[5vw]">
+      {/* Methodology Section - Sticky */}
+      <div className="w-full sticky top-0 z-40 bg-white py-[6vh] pb-5 px-[5vw]">
+        <div className="w-full max-w-[1400px] mx-auto">
           <p className="text-[12px] lg:text-[14px] font-bold tracking-[0.3em] text-[#a3925d] uppercase mb-[1.5vh]">The Methodology</p>
-          <h2 className="text-[32px] lg:text-[48px] font-serif mb-[8vh] leading-tight text-[#1a1a1a]">The Golden Standard Workflow</h2>
-          <div className="method-grid grid grid-cols-1 md:grid-cols-3 gap-[3vw]">
-            {methodologySteps.map((step) => (
-              <div key={step.number} className="method-card flex flex-col">
-                <div className="relative w-full aspect-[4/5] mb-[2.5vh] overflow-hidden bg-gray-100">
+          <h2 className="text-[32px] lg:text-[48px] font-serif mb-[2vh] leading-tight text-[#1a1a1a]">The Golden Standard Workflow</h2>
+        </div>
+      </div>
+
+      {/* Steps - Vertical Scroll */}
+      <div className="w-full px-[5vw] pb-[10vh]">
+        <div className="w-full max-w-[1400px] mx-auto">
+          <div 
+            ref={methodGridRef}
+            className="method-grid flex flex-col md:grid md:grid-cols-3 gap-[3vw]"
+          >
+            {methodologySteps.map((step, idx) => (
+              <div 
+                key={step.number} 
+                className="method-card flex flex-col md:flex-row w-full gap-[2vw] items-start"
+              >
+                <div className="relative w-full md:w-[45%] aspect-[4/5] md:aspect-square overflow-hidden bg-gray-100 flex-shrink-0">
                   <img src={step.img} alt={step.title} className="w-full h-full object-cover" />
                 </div>
-                <div className="flex items-start gap-[1vw]">
-                  <span className="text-[24px] lg:text-[32px] font-serif text-[#dcd6c5]">{step.number}</span>
+                <div className="flex items-start gap-[1vw] flex-1">
+                  <span className="text-[24px] lg:text-[32px] font-serif text-[#dcd6c5] flex-shrink-0">{step.number}</span>
                   <div>
                     <h3 className="text-[18px] lg:text-[20px] font-bold mb-[0.8vh]">{step.title}</h3>
                     <p className="text-[14px] lg:text-[16px] text-[#666666]">{step.desc}</p>

@@ -6,8 +6,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroSection from "./components/sections/HeroSection";
 import MethodologySection from "./components/sections/MethodologySection";
 import ZoomSection from "./components/sections/ZoomSection";
-import WhatWeDoSection from "./components/sections/WhatWeDoSection";
-import WhyGoldenFocusSection from "./components/sections/WhyGoldenFocusSection";
 import HowItWorksSection from "./components/sections/HowItWorksSection";
 import LazyLoad from "./components/LazyLoad";
 import Scrolling from "./components/sections/scrolling";
@@ -23,7 +21,7 @@ export default function LandingPage() {
 
       <div className="relative z-10 pt-[105vh]">
         
-        <div className="relative z-10"> 
+        <div className="sticky z-10"> 
             <MethodologySection />
       
         </div>
@@ -33,23 +31,7 @@ export default function LandingPage() {
             <ZoomSection />
         </div>
 
-        
-
-        {/* 4. What We Do Section (Z-30) - Zoom ke upar slide hoga */}
-        <div className="relative z-30">
-          <LazyLoad fallback={<div className="w-full h-screen bg-[#8497ab] animate-pulse" />}>
-            <WhatWeDoSection />
-          </LazyLoad>
-        </div>
-
-        {/* 5. Why GoldenFocus (Z-40) - Iska design ab aapke Methodology wale code jaisa hi hoga */}
-        <div className="relative z-40">
-          <LazyLoad fallback={<div className="w-full h-screen bg-white animate-pulse" />}>
-            <WhyGoldenFocusSection />
-          </LazyLoad>
-        </div>
-
-        {/* 6. How It Works (Z-50) */}
+        {/* 4. How It Works (Z-50) */}
         <div className="relative z-50">
           <LazyLoad fallback={<div className="w-full h-screen bg-[#f5793b] animate-pulse" />}>
             <HowItWorksSection />

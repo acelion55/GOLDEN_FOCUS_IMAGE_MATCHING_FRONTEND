@@ -23,19 +23,19 @@ export default function ZoomSection() {
         scrollTrigger: {
           trigger: zoomSectionRef.current,
           start: "top -20%",
-          end: "40%",    
+          end: "40%",
           scrub: 1,
           pin: true,
         },
       })
-      // Background image scale up hoga
-      .fromTo(bgImageRef.current, { scale: 1 }, { scale: 2.5, ease: "none" }, 0)
-      
-      // Circle scale up aur fade out hoga
-      .fromTo(circleImageRef.current, { scale: 1, opacity: 1 }, { scale: 2.5, opacity: 0, ease: "none" }, 0)
-      
-      // Text bhi circle ke sath hi scale up aur fade out hoga
-      .fromTo(textRef.current, { scale: 1, opacity: 1 }, {  opacity: 0, ease: "none" }, 0);
+        // Background image scale up hoga
+        .fromTo(bgImageRef.current, { scale: 1 }, { scale: 2.5, ease: "none" }, 0)
+
+        // Circle scale up aur fade out hoga
+        .fromTo(circleImageRef.current, { scale: 1, opacity: 1 }, { scale: 2.5, opacity: 0, ease: "none" }, 0)
+
+        // Text bhi circle ke sath hi scale up aur fade out hoga
+        .fromTo(textRef.current, { scale: 1, opacity: 1 }, { opacity: 0, ease: "none" }, 0);
     });
 
     return () => ctx.revert();
@@ -44,14 +44,14 @@ export default function ZoomSection() {
   return (
     <section ref={zoomSectionRef} className="relative w-full   h-[180vh] bg-transparent  overflow-hidden ">
       {/* Wrapper to hold everything centered */}
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        
+      <div className="absolute inset-0 flex w-[100.5vw] items-center justify-center pointer-events-none">
+
         {/* 1. Background Image */}
         <img
           ref={bgImageRef}
           src="/screenzoom.png"
           alt="Background"
-          className="w-full h-auto top-20 z-10 object-contain will-change-transform"
+          className="w-full h-auto -top-20 z-10 object-contain will-change-transform"
         />
 
         {/* 2. Circle Image Overlay */}
@@ -61,14 +61,14 @@ export default function ZoomSection() {
           alt="Center Circle"
           className="absolute z-10 w-[90%] md:w-[60%] -ml-[3.5%] h-auto will-change-transform"
         />
-      
+
         {/* 3. Middle Text Overlay (Left Aligned) */}
-        <div 
+        <div
           ref={textRef}
           className="absolute z-20 mt-[40%] w-full h-full"
         >
           {/* Is container se text middle mein rahega par left align hoga */}
-          <div className="max-w-[1200px] w-full px-[10vw] text-left">
+          <div className="max-w-[1200px] w-full px-[2vw] font-bold text-left">
             <h2 className="text-white text-[40px] md:text-[80px] font-serif leading-tight">
               Capturing <br />
               <span className="italic">Every Detail</span>
@@ -80,9 +80,9 @@ export default function ZoomSection() {
         </div>
 
       </div>
- <div className="relative  z-0">
-      <div className=" z-0"><Scrolling /></div>
-        </div>
+      <div className="relative  z-0">
+        <div className=" z-0"><Scrolling /></div>
+      </div>
     </section>
   );
 }
